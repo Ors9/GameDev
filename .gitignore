@@ -1,0 +1,23 @@
+# קבצי הרצה (Compiled files)
+*.exe
+*.out
+*.app
+
+# קבצי אובייקט וספריות (Object files & Libraries)
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# תיקיות של ה-Compiler או VS Code
+.vscode/
+build/
+bin/
+obj/
+
+# קבצים זמניים
+*.log
+*.tmp
