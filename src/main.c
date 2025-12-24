@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "player.h"
+#include "enemy.h"
 
 // פונקציית עזר למצלמה (אפשר להשאיר כאן או להוציא לקובץ camera.h בעתיד)
 void InitCamera(Camera3D *camera)
@@ -17,7 +18,9 @@ int main()
     InitWindow(screenWidth, screenHeight, "Summoner Game");
 
     Player player;
+    Enemy enemy;
     InitPlayer(&player);
+    InitEnemy(&enemy);
 
     Camera3D camera = {0};
     InitCamera(&camera);
@@ -27,8 +30,8 @@ int main()
     while (!WindowShouldClose())
     {
         // 1. Update
-        float dt = GetFrameTime();
-        MovingPlayer(&player, dt);
+        float deltaTime = GetFrameTime();
+        MovingPlayer(&player, deltaTime);
 
         camera.target = player.position;
         camera.position = (Vector3){player.position.x, player.position.y + 10.0f, player.position.z + 20.0f};
@@ -38,7 +41,12 @@ int main()
         ClearBackground(RAYWHITE);
         BeginMode3D(camera);
         DrawGrid(1000, 2.0f);
-        DrawCube(player.position, player.po.width, player.po.height, player.po.length, player.po.color);
+
+        DrawPlayer(player);
+        DrawEnemy(enemy);
+
+        UpdateEnemy(&enemy, &player, deltaTime);
+
         EndMode3D();
         EndDrawing();
     }

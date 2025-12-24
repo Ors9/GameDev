@@ -21,5 +21,8 @@ typedef struct Player {
 // הצהרה על הפונקציות (בלי המימוש שלהן)
 void InitPlayer(Player *player);
 void MovingPlayer(Player *player, float deltaTime);
+void DrawPlayer(Player player);
 
-#endif
+#endif // PLAYER_H
+
+

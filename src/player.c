@@ -14,6 +14,10 @@ void InitPlayer(Player *player)
     player->position = (Vector3){100, 1, 100}; // שמנו ב-Y=1 כדי שיעמוד על הרשת
 }
 
+void DrawPlayer(Player player){
+    DrawCube(player.position, player.po.width, player.po.height, player.po.length, player.po.color);
+}
+
 void MovingPlayer(Player *player, float deltaTime)
 {
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP))
