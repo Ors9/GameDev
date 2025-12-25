@@ -31,7 +31,9 @@ int main()
     {
         // 1. Update
         float deltaTime = GetFrameTime();
-        MovingPlayer(&player, deltaTime);
+        
+        bool isMoving = MovingPlayer(&player, deltaTime);
+        UpdatePlayerAnimation(&player, isMoving, deltaTime);
 
         camera.target = player.position;
         camera.position = (Vector3){player.position.x, player.position.y + 10.0f, player.position.z + 20.0f};

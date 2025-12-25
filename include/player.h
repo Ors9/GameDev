@@ -2,27 +2,25 @@
 #define PLAYER_H
 
 #include "raylib.h"
+#include "raymath.h"
 
-typedef struct PlayerObject {
-    float height;
-    float width;
-    float length;
-    Color color;
-} PlayerObject;
-
-typedef struct Player {
+typedef struct Player
+{
     Vector3 position;
     float speed;
-    PlayerObject po;
+    Model Pmodel;
+    ModelAnimation *modelAnim;
+    float animTime;
+    int animsCount;
+    int countCurrModelAnimation;
     float health;
     float attack;
 } Player;
 
 // הצהרה על הפונקציות (בלי המימוש שלהן)
 void InitPlayer(Player *player);
-void MovingPlayer(Player *player, float deltaTime);
+bool MovingPlayer(Player *player, float deltaTime);
 void DrawPlayer(Player player);
+void UpdatePlayerAnimation(Player * player ,bool isMoving ,float deltaTime);
 
 #endif // PLAYER_H
-
-

@@ -24,7 +24,7 @@ void UpdateEnemy(Enemy *enemy , Player *player , float deltaTime){
     Vector3 direction = Vector3Subtract(player->position , enemy->position);
     direction = Vector3Normalize(direction);   
 
-    if(Vector3Distance(enemy->position, player->position) < enemy->po.width/2.0f + player->po.width/2.0f + 2){
+    if(Vector3Distance(enemy->position, player->position) < enemy->po.width/2.0f + 2){
         return;
     }
     
