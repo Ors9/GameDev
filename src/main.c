@@ -12,8 +12,8 @@ void InitCamera(Camera3D *camera)
 
 int main()
 {
-    const int screenWidth = 1200;
-    const int screenHeight = 800;
+    const int screenWidth = 2000;
+    const int screenHeight = 1200;
 
     InitWindow(screenWidth, screenHeight, "Summoner Game");
 
@@ -33,7 +33,14 @@ int main()
         float deltaTime = GetFrameTime();
 
         bool isMoving = MovingPlayer(&player, deltaTime);
-        UpdatePlayerAnimation(&player, isMoving, deltaTime);
+        PlayerState newState = DeterminePlayerState(&player);
+        if (newState != player.currentState)
+        {
+            player.currentState = newState;
+            player.animTime = 0;
+        }
+        UpdatePlayerLogicBaseOnState(&player);
+        UpdatePlayerAnimation(&player, deltaTime);
 
         camera.target = player.position;
         camera.position = (Vector3){player.position.x, player.position.y + 10.0f, player.position.z + 20.0f};

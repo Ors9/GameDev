@@ -2,9 +2,8 @@
 #include <stdio.h>
 #include <math.h>
 
-
 /**
- * To DO: 
+ * To DO:
  *  Add character assets in C:\Users\or8sa\Desktop\GameProjectAssets\שחקן
  * להמיר אותם לפורמט glb ולשלב בקוד
  * זה הולך לדרוש הרבה עבודה
@@ -13,14 +12,42 @@
 void InitPlayer(Player *player)
 {
     int tempCount = 0;
+    const char *dir = "assets/model/Player/Mutant/";
+    const char *modelsPath[ANIM_COUNT] = {
+        "Idle.glb",                   // 0: PLAYER_IDLE
+        "Walk.glb",                   // 1: PLAYER_WALK
+        "Run.glb",                    // 2: PLAYER_RUN
+        "Punch.glb",                  // 3: PLAYER_PUNCH
+        "Swipe.glb",                  // 4: PLAYER_SWIPE
+        "Mutant_Jumping.glb",         // 5: PLAYER_JUMP
+        "Jump_Attack.glb",            // 6: PLAYER_JUMP_ATTACK
+        "Roar.glb",                   // 7: PLAYER_ROAR
+        "mutant_flexing_muscles.glb", // 8: PLAYER_FLEX
+        "Death.glb"                   // 9: PLAYER_DIE
+    };
+
     player->currentState = PLAYER_IDLE;
     player->animIndex = 0;
-    player->Pmodel = LoadModel("assets/model/Player/Run.glb");
-    player->animations[PLAYER_IDLE] = LoadModelAnimations("assets/model/Player/Run.glb", &tempCount)[0];
-    player->animations[PLAYER_RUN] = LoadModelAnimations("assets/model/Player/FastRun.glb", &tempCount)[0];
-    player->animations[PLAYER_JUMP] = LoadModelAnimations("assets/model/Player/Jumping.glb", &tempCount)[0];
-    // אם אין לך עדיין קובץ Attack, תוכל להעתיק זמנית את ה-Idle כדי שלא יקרוס
-    player->animations[PLAYER_ATTACK] = player->animations[PLAYER_IDLE];
+    player->Pmodel = LoadModel(TextFormat("%sIdle.glb", dir));
+
+    for (int i = 0; i < ANIM_COUNT; i++)
+    {
+        const char *fullPath = TextFormat("assets/model/Player/Mutant/%s", modelsPath[i]);
+        int animsCount = 0;
+        ModelAnimation *loadedAnims = LoadModelAnimations(fullPath, &animsCount);
+
+        // בדיקת בטיחות: האם המצביע תקין והאם יש לפחות אנימציה אחת?
+        if (loadedAnims != NULL && animsCount > 0)
+        {
+            player->animations[i] = loadedAnims[0];
+            printf("Loaded: %s, BoneCount: %d\n", modelsPath[i], player->animations[i].boneCount);
+        }
+        else
+        {
+            printf("WARNING: Failed to load animation: %s. Using Idle as fallback.\n", modelsPath[i]);
+            player->animations[i] = player->animations[PLAYER_IDLE]; // Fallback כדי שלא יקרוס
+        }
+    }
 
     player->animTime = 0;
     player->attack = 10;
@@ -30,16 +57,73 @@ void InitPlayer(Player *player)
     player->position = (Vector3){100, 1, 100}; // שמנו ב-Y=1 כדי שיעמוד על הרשת
 }
 
-void UpdatePlayerAnimation(Player *player, bool isMoving, float deltaTime)
+PlayerState DeterminePlayerState(Player *player)
 {
-    PlayerState oldState = player->currentState;
-    PlayerState newState = isMoving ? PLAYER_RUN : PLAYER_IDLE;
+    PlayerState currState = player->currentState;
+    bool isMoving = CheckMovementInput();
 
-    if (oldState != newState)
+
+    if (player->health <= 0)
     {
-        player->currentState = newState;
-        player->animTime = 0;
+        return PLAYER_DIE;
     }
+
+    if (IsKeyDown(KEY_THREE))
+    {
+        return PLAYER_SWIPE;
+    }
+
+    if (IsKeyDown(KEY_TWO))
+    {
+        return PLAYER_JUMP_ATTACK;
+    }
+
+    if (IsKeyDown(KEY_ONE))
+    {
+        return PLAYER_PUNCH;
+    }
+
+    if (IsKeyDown(KEY_SPACE))
+    {
+        return PLAYER_JUMP;
+    }
+
+    if (IsKeyDown(KEY_LEFT_SHIFT) && isMoving)
+    {
+        return PLAYER_RUN;
+    }
+
+    if (isMoving)
+    {
+        return PLAYER_WALK;
+    }
+
+    if (IsKeyDown(KEY_FOUR))
+    {
+        return PLAYER_ROAR;
+    }
+
+    if (IsKeyDown(KEY_FIVE))
+    {
+        return PLAYER_FLEX;
+    }
+
+    return PLAYER_IDLE;
+}
+
+bool CheckMovementInput()
+{
+
+    return (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP) ||
+            IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN) ||
+            IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT) ||
+            IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT));
+}
+
+void UpdatePlayerAnimation(Player *player, float deltaTime)
+{
+  
+    PlayerState currState = player->currentState;
     
     float animSpeed = (player->currentState == PLAYER_IDLE) ? 30.0f : 60.0f;
     player->animTime += deltaTime * animSpeed;
@@ -51,7 +135,35 @@ void UpdatePlayerAnimation(Player *player, bool isMoving, float deltaTime)
     }
 
     UpdateModelAnimation(player->Pmodel, currentAnim, (int)player->animTime);
+}
 
+void UpdatePlayerLogicBaseOnState(Player *player)
+{
+    switch (player->currentState)
+    {
+    case PLAYER_RUN:
+        player->speed = 40.0f;
+        break;
+    case PLAYER_WALK:
+        player->speed = 20.0f;
+        break;
+    // כל מצבי התקיפה מאפשרים תנועה קלה (Combat Strafe)
+    case PLAYER_PUNCH:
+    case PLAYER_SWIPE:
+    case PLAYER_JUMP_ATTACK:
+        player->speed = 8.0f;
+        break;
+    // מצבים שבהם המוטנט חייב לעמוד במקום
+    case PLAYER_ROAR:
+    case PLAYER_FLEX:
+    case PLAYER_IDLE:
+    case PLAYER_DIE:
+        player->speed = 0.0f;
+        break;
+    case PLAYER_JUMP:
+        // TODO לעבוד על זה!!!
+        break;
+    }
 }
 
 void CalculateRotation(Player *player, Vector3 direction)
@@ -67,7 +179,7 @@ void CalculateRotation(Player *player, Vector3 direction)
 
 void DrawPlayer(Player player)
 {
-    DrawModel(player.Pmodel, player.position, 1.0f, WHITE);
+    DrawModel(player.Pmodel, player.position, 3.0f, WHITE);
 }
 
 bool MovingPlayer(Player *player, float deltaTime)

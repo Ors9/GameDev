@@ -4,12 +4,19 @@
 #include "raylib.h"
 #include "raymath.h"
 
-typedef enum {
+typedef enum
+{
     PLAYER_IDLE = 0,
+    PLAYER_WALK,
     PLAYER_RUN,
+    PLAYER_PUNCH,
+    PLAYER_SWIPE,
     PLAYER_JUMP,
-    PLAYER_ATTACK,
-    ANIM_COUNT // טריק של מתכנתים כדי לדעת את גודל המערך
+    PLAYER_JUMP_ATTACK,
+    PLAYER_ROAR,
+    PLAYER_FLEX, // mutant_flexing_muscles.glb
+    PLAYER_DIE,  // Death.glb
+    ANIM_COUNT   // הגודל הסופי של המערך (10)
 } PlayerState;
 
 typedef struct Player
@@ -22,7 +29,7 @@ typedef struct Player
     float animTime;
     int animIndex;
     float rotation;
- 
+
     float health;
     float attack;
 } Player;
@@ -31,7 +38,10 @@ typedef struct Player
 void InitPlayer(Player *player);
 bool MovingPlayer(Player *player, float deltaTime);
 void DrawPlayer(Player player);
-void UpdatePlayerAnimation(Player * player ,bool isMoving ,float deltaTime);
-void CalculateRotation(Player *player , Vector3 direction);
+void UpdatePlayerAnimation(Player *player, float deltaTime);
+void CalculateRotation(Player *player, Vector3 direction);
+bool CheckMovementInput();
+PlayerState DeterminePlayerState(Player *player);
+void UpdatePlayerLogicBaseOnState(Player *player);
 
 #endif // PLAYER_H
