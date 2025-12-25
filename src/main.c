@@ -12,8 +12,8 @@ void InitCamera(Camera3D *camera)
 
 int main()
 {
-    const int screenWidth = 2400;
-    const int screenHeight = 1600;
+    const int screenWidth = 1200;
+    const int screenHeight = 800;
 
     InitWindow(screenWidth, screenHeight, "Summoner Game");
 
@@ -31,7 +31,7 @@ int main()
     {
         // 1. Update
         float deltaTime = GetFrameTime();
-        
+
         bool isMoving = MovingPlayer(&player, deltaTime);
         UpdatePlayerAnimation(&player, isMoving, deltaTime);
 
