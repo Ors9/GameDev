@@ -43,5 +43,7 @@ void CalculateRotation(Player *player, Vector3 direction);
 bool CheckMovementInput();
 PlayerState DeterminePlayerState(Player *player);
 void UpdatePlayerLogicBaseOnState(Player *player);
+bool AnimationController(Player *player);
+bool IsActionAnimation(PlayerState state);
 
 #endif // PLAYER_H

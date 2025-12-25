@@ -29,23 +29,34 @@ int main()
 
     while (!WindowShouldClose())
     {
-        // 1. Update
+        // --- 1. Update (לוגיקה וחישובים) ---
         float deltaTime = GetFrameTime();
 
+        // עדכון אויב)
+        UpdateEnemy(&enemy, &player, deltaTime);
+
+        // לוגיקה של השחקן
         bool isMoving = MovingPlayer(&player, deltaTime);
-        PlayerState newState = DeterminePlayerState(&player);
-        if (newState != player.currentState)
+        bool cantMove = AnimationController(&player);
+
+        if (!cantMove)
         {
-            player.currentState = newState;
-            player.animTime = 0;
+            PlayerState newState = DeterminePlayerState(&player);
+            if (newState != player.currentState)
+            {
+                player.currentState = newState;
+                player.animTime = 0;
+            }
+            UpdatePlayerLogicBaseOnState(&player);
         }
-        UpdatePlayerLogicBaseOnState(&player);
+
         UpdatePlayerAnimation(&player, deltaTime);
 
+        // עדכון מצלמה שעוקבת אחרי השחקן
         camera.target = player.position;
         camera.position = (Vector3){player.position.x, player.position.y + 10.0f, player.position.z + 20.0f};
 
-        // 2. Draw
+        // --- 2. Draw (ציור בלבד) ---
         BeginDrawing();
         ClearBackground(RAYWHITE);
         BeginMode3D(camera);
@@ -57,6 +68,7 @@ int main()
         UpdateEnemy(&enemy, &player, deltaTime);
 
         EndMode3D();
+            DrawFPS(10, 10);
         EndDrawing();
     }
 

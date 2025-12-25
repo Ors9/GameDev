@@ -62,7 +62,6 @@ PlayerState DeterminePlayerState(Player *player)
     PlayerState currState = player->currentState;
     bool isMoving = CheckMovementInput();
 
-
     if (player->health <= 0)
     {
         return PLAYER_DIE;
@@ -120,11 +119,29 @@ bool CheckMovementInput()
             IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT));
 }
 
+// פונקציה שבודקת האם המצב הנוכחי הוא אנימציית פעולה (One-shot)
+bool IsActionAnimation(PlayerState state)
+{
+    switch (state)
+    {
+    case PLAYER_JUMP:
+    case PLAYER_PUNCH:
+    case PLAYER_SWIPE:
+    case PLAYER_JUMP_ATTACK:
+    case PLAYER_FLEX:
+    case PLAYER_ROAR:
+        return true; // זו אנימציית פעולה
+
+    default:
+        return false; // כל השאר (IDLE, WALK, RUN) הן אנימציות לופ
+    }
+}
+
 void UpdatePlayerAnimation(Player *player, float deltaTime)
 {
-  
+
     PlayerState currState = player->currentState;
-    
+
     float animSpeed = (player->currentState == PLAYER_IDLE) ? 30.0f : 60.0f;
     player->animTime += deltaTime * animSpeed;
 
@@ -132,6 +149,10 @@ void UpdatePlayerAnimation(Player *player, float deltaTime)
     if (player->animTime >= currentAnim.frameCount)
     {
         player->animTime = 0;
+        if (IsActionAnimation(currState) == true)
+        {
+            player->currentState = PLAYER_IDLE;
+        }
     }
 
     UpdateModelAnimation(player->Pmodel, currentAnim, (int)player->animTime);
@@ -142,7 +163,7 @@ void UpdatePlayerLogicBaseOnState(Player *player)
     switch (player->currentState)
     {
     case PLAYER_RUN:
-        player->speed = 40.0f;
+        player->speed = 30.0f;
         break;
     case PLAYER_WALK:
         player->speed = 20.0f;
@@ -150,14 +171,14 @@ void UpdatePlayerLogicBaseOnState(Player *player)
     // כל מצבי התקיפה מאפשרים תנועה קלה (Combat Strafe)
     case PLAYER_PUNCH:
     case PLAYER_SWIPE:
-    case PLAYER_JUMP_ATTACK:
+    case PLAYER_ROAR:
+    case PLAYER_FLEX:
         player->speed = 8.0f;
         break;
     // מצבים שבהם המוטנט חייב לעמוד במקום
-    case PLAYER_ROAR:
-    case PLAYER_FLEX:
     case PLAYER_IDLE:
     case PLAYER_DIE:
+    case PLAYER_JUMP_ATTACK:
         player->speed = 0.0f;
         break;
     case PLAYER_JUMP:
@@ -184,6 +205,10 @@ void DrawPlayer(Player player)
 
 bool MovingPlayer(Player *player, float deltaTime)
 {
+    if(player->currentState == PLAYER_JUMP_ATTACK){
+        return false;
+    }
+
     bool moving = false;
     Vector3 direction = (Vector3){0, 0, 0};
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP))
@@ -217,5 +242,19 @@ bool MovingPlayer(Player *player, float deltaTime)
         return true;
     }
 
+    return false;
+}
+
+bool AnimationController(Player *player)
+{
+    PlayerState currState = player->currentState;
+
+    if (IsActionAnimation(currState) == true)
+    {
+        if (player->animTime < player->animations[player->currentState].frameCount)
+        {
+            return true;
+        }
+    }
     return false;
 }
