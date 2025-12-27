@@ -9,7 +9,7 @@ static bool IsActionAnimation(PlayerAnimationState state);
 static void UpdatePlayerLogicBaseOnState(Player *player);
 static void CalculateRotation(Player *player, Vector3 direction);
 
-typedef struct Player
+struct Player
 {
     Vector3 position;
     float speed;
@@ -22,7 +22,7 @@ typedef struct Player
 
     float health;
     float attack;
-} Player;
+};
 
 Player *InitPlayer()
 {

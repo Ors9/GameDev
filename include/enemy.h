@@ -3,27 +3,15 @@
 
 #include "raylib.h"
 #include "player.h"
+#include "stdlib.h"
+#include <stdio.h>
 
-typedef struct EnemyObject {
-    float height;
-    float width;
-    float length;
-    Color color;
-} EnemyObject;
+typedef struct Enemy Enemy;
 
-typedef struct Enemy
-{
-    Vector3 position;
-    EnemyObject po;
-    float speed;
-    float health;
-    float attack;
-} Enemy;
 
-void DrawEnemy(Enemy enemy);
-void InitEnemy(Enemy *enemy);
+Enemy* InitEnemy(); 
 void UpdateEnemy(Enemy *enemy, Player *player, float deltaTime);
-
-
+void DrawEnemy(Enemy *enemy); 
+void UnloadEnemy(Enemy *enemy);
 
 #endif // ENEMY_H
