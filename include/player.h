@@ -4,7 +4,9 @@
 #include "raylib.h"
 #include "raymath.h"
 
-typedef enum
+
+
+typedef enum PlayerAnimationState
 {
     PLAYER_IDLE = 0,
     PLAYER_WALK,
@@ -16,34 +18,21 @@ typedef enum
     PLAYER_ROAR,
     PLAYER_FLEX, // mutant_flexing_muscles.glb
     PLAYER_DIE,  // Death.glb
-    ANIM_COUNT   // הגודל הסופי של המערך (10)
-} PlayerState;
+    ANIM_COUNT   // הגודל הסופי של המערך
+} PlayerAnimationState;
 
-typedef struct Player
-{
-    Vector3 position;
-    float speed;
-    Model Pmodel;
-    ModelAnimation animations[ANIM_COUNT];
-    PlayerState currentState;
-    float animTime;
-    int animIndex;
-    float rotation;
 
-    float health;
-    float attack;
-} Player;
+typedef struct Player Player;
+
+
 
 // הצהרה על הפונקציות (בלי המימוש שלהן)
-void InitPlayer(Player *player);
+Player * InitPlayer();
 bool MovingPlayer(Player *player, float deltaTime);
-void DrawPlayer(Player player);
-void UpdatePlayerAnimation(Player *player, float deltaTime);
-void CalculateRotation(Player *player, Vector3 direction);
-bool CheckMovementInput();
-PlayerState DeterminePlayerState(Player *player);
-void UpdatePlayerLogicBaseOnState(Player *player);
+void DrawPlayer(Player * player);
+void UpdatePlayer(Player *player, float deltaTime);
 bool AnimationController(Player *player);
-bool IsActionAnimation(PlayerState state);
+Vector3 GetPlayerPosition(Player *player);
+void UnloadPlayer(Player * player);
 
 #endif // PLAYER_H

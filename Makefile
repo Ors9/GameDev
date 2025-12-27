@@ -8,7 +8,7 @@ INC_DIR = include
 LIB_DIR = lib
 
 # קבצי מקור (מוצא את כל קבצי ה-c בתיקיית src)
-SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/player.c $(SRC_DIR)/enemy.c
+SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/player.c $(SRC_DIR)/enemy.c $(SRC_DIR)/game_state.c  $(SRC_DIR)/game_loop.c
 
 # דגלים לקומפיילר
 # -I אומר איפה לחפש קבצי .h

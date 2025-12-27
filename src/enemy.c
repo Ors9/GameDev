@@ -21,10 +21,11 @@ void InitEnemy(Enemy *enemy) {
 
 
 void UpdateEnemy(Enemy *enemy , Player *player , float deltaTime){
-    Vector3 direction = Vector3Subtract(player->position , enemy->position);
+    Vector3 playerPos = GetPlayerPosition(player);
+    Vector3 direction = Vector3Subtract(playerPos, enemy->position);
     direction = Vector3Normalize(direction);   
 
-    if(Vector3Distance(enemy->position, player->position) < enemy->po.width/2.0f + 2){
+    if(Vector3Distance(enemy->position, playerPos) < enemy->po.width/2.0f + 2){
         return;
     }
     

@@ -1,16 +1,38 @@
 #include "player.h"
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 
-/**
- * To DO:
- *  Add character assets in C:\Users\or8sa\Desktop\GameProjectAssets\שחקן
- * להמיר אותם לפורמט glb ולשלב בקוד
- * זה הולך לדרוש הרבה עבודה
- */
+static bool CheckMovementInput();
+static PlayerAnimationState DeterminePlayerAnimationState(Player *player);
+static bool IsActionAnimation(PlayerAnimationState state);
+static void UpdatePlayerLogicBaseOnState(Player *player);
+static void CalculateRotation(Player *player, Vector3 direction);
 
-void InitPlayer(Player *player)
+typedef struct Player
 {
+    Vector3 position;
+    float speed;
+    Model Pmodel;
+    ModelAnimation animations[ANIM_COUNT];
+    PlayerAnimationState currentState;
+    float animTime;
+    int animIndex;
+    float rotation;
+
+    float health;
+    float attack;
+} Player;
+
+Player *InitPlayer()
+{
+    Player *player = malloc(sizeof(Player));
+    if (player == NULL)
+    {
+        printf("Failed to allocate memory for Player.\n");
+        exit(1);
+    }
+
     int tempCount = 0;
     const char *dir = "assets/model/Player/Mutant/";
     const char *modelsPath[ANIM_COUNT] = {
@@ -55,11 +77,13 @@ void InitPlayer(Player *player)
     player->speed = 20;
 
     player->position = (Vector3){100, 1, 100}; // שמנו ב-Y=1 כדי שיעמוד על הרשת
+
+    return player;
 }
 
-PlayerState DeterminePlayerState(Player *player)
+static PlayerAnimationState DeterminePlayerAnimationState(Player *player)
 {
-    PlayerState currState = player->currentState;
+    PlayerAnimationState currState = player->currentState;
     bool isMoving = CheckMovementInput();
 
     if (player->health <= 0)
@@ -110,7 +134,7 @@ PlayerState DeterminePlayerState(Player *player)
     return PLAYER_IDLE;
 }
 
-bool CheckMovementInput()
+static bool CheckMovementInput()
 {
 
     return (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP) ||
@@ -120,7 +144,7 @@ bool CheckMovementInput()
 }
 
 // פונקציה שבודקת האם המצב הנוכחי הוא אנימציית פעולה (One-shot)
-bool IsActionAnimation(PlayerState state)
+static bool IsActionAnimation(PlayerAnimationState state)
 {
     switch (state)
     {
@@ -137,10 +161,14 @@ bool IsActionAnimation(PlayerState state)
     }
 }
 
-void UpdatePlayerAnimation(Player *player, float deltaTime)
+Vector3 GetPlayerPosition(Player *player){
+    return player->position;
+}
+
+static void UpdatePlayerAnimation(Player *player, float deltaTime)
 {
 
-    PlayerState currState = player->currentState;
+    PlayerAnimationState currState = player->currentState;
 
     float animSpeed = (player->currentState == PLAYER_IDLE) ? 30.0f : 60.0f;
     player->animTime += deltaTime * animSpeed;
@@ -158,7 +186,33 @@ void UpdatePlayerAnimation(Player *player, float deltaTime)
     UpdateModelAnimation(player->Pmodel, currentAnim, (int)player->animTime);
 }
 
-void UpdatePlayerLogicBaseOnState(Player *player)
+
+void UpdatePlayer(Player *player, float deltaTime) {
+    // 1. בדיקה האם השחקן נעול באנימציית "פעולה"
+    bool isLocked = AnimationController(player);
+
+    if (!isLocked) {
+        // 2. קביעת המצב החדש לפי קלט
+        PlayerAnimationState newState = DeterminePlayerAnimationState(player);
+        
+        // 3. אם המצב השתנה, מאפסים טיימר
+        if (newState != player->currentState) {
+            player->currentState = newState;
+            player->animTime = 0;
+        }
+        
+        // 4. עדכון מהירות לפי המצב
+        UpdatePlayerLogicBaseOnState(player);
+    }
+
+    // 5. תנועה פיזית (הפונקציה כבר בודקת בתוכה אם אפשר לזוז)
+    MovingPlayer(player, deltaTime);
+
+    // 6. עדכון פריימים של אנימציה
+    UpdatePlayerAnimation(player, deltaTime);
+}
+
+static void UpdatePlayerLogicBaseOnState(Player *player)
 {
     switch (player->currentState)
     {
@@ -187,7 +241,7 @@ void UpdatePlayerLogicBaseOnState(Player *player)
     }
 }
 
-void CalculateRotation(Player *player, Vector3 direction)
+static void CalculateRotation(Player *player, Vector3 direction)
 {
     if (direction.x == 0 && direction.z == 0)
     {
@@ -198,14 +252,15 @@ void CalculateRotation(Player *player, Vector3 direction)
     player->Pmodel.transform = MatrixRotateY(player->rotation * DEG2RAD);
 }
 
-void DrawPlayer(Player player)
+void DrawPlayer(Player * player)
 {
-    DrawModel(player.Pmodel, player.position, 3.0f, WHITE);
+    DrawModel(player->Pmodel, player->position, 3.0f, WHITE);
 }
 
 bool MovingPlayer(Player *player, float deltaTime)
 {
-    if(player->currentState == PLAYER_JUMP_ATTACK){
+    if (player->currentState == PLAYER_JUMP_ATTACK)
+    {
         return false;
     }
 
@@ -247,7 +302,7 @@ bool MovingPlayer(Player *player, float deltaTime)
 
 bool AnimationController(Player *player)
 {
-    PlayerState currState = player->currentState;
+    PlayerAnimationState currState = player->currentState;
 
     if (IsActionAnimation(currState) == true)
     {
@@ -257,4 +312,11 @@ bool AnimationController(Player *player)
         }
     }
     return false;
+}
+
+
+void UnloadPlayer(Player * player)
+{
+    UnloadModel(player->Pmodel);
+    free(player);
 }
