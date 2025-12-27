@@ -5,6 +5,13 @@
 #include "game_state.h" // שינוי למירכאות
 
 
+static void UnloadGamePointers(Player *player, Enemy *enemy, GameCamera *gCam, GameState *gameState){
+    UnloadPlayer(player);
+    UnloadEnemy(enemy);
+    UnloadGameCamera(gCam);
+    UnloadGameState(gameState);
+}
+
 void StartGame()
 {
     const int screenWidth = 1600; 
@@ -16,11 +23,8 @@ void StartGame()
     Player *player = InitPlayer();
     Enemy *enemy = InitEnemy();
 
-
-    GameState gameState;
-    InitGameState(&gameState);
-
-    GameCamera *gameCamera = InitGameCamera();
+    GameState * gameState = InitGameState();
+    GameCamera *gCam = InitGameCamera();
   
 
     SetTargetFPS(60);
@@ -29,16 +33,18 @@ void StartGame()
     {
         float deltaTime = GetFrameTime();
 
+        
+
         // --- 1. Update (לוגיקה) ---
         UpdateEnemy(enemy, player, deltaTime);
         UpdatePlayer(player, deltaTime); 
-        UpdateGameCamera(gameCamera, player, deltaTime);
+        UpdateGameCamera(gCam, player, deltaTime);
 
         // --- 2. Draw (ציור) ---
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        BeginMode3D(GetRaylibCamera(gameCamera));
+        BeginMode3D(GetRaylibCamera(gCam));
         DrawGrid(1000, 2.0f);
         DrawPlayer(player); 
         DrawEnemy(enemy);     
@@ -49,7 +55,8 @@ void StartGame()
     }
 
     // שחרור זיכרון מסודר
-    UnloadPlayer(player);
-    UnloadEnemy(enemy);
+    UnloadGamePointers(player, enemy, gCam, gameState);
+
     CloseWindow();
+    
 }

@@ -50,3 +50,8 @@ void UpdateGameCamera(GameCamera *gCam, Player *player, float deltaTime)
     // 2. המצלמה תמיד נמצאת בדיוק 10 יחידות מעל ו-20 יחידות מאחורי השחקן
     gCam->raylibCam.position = (Vector3){playerPos.x, playerPos.y + 10.0f, playerPos.z + 20.0f};
 }
+
+void UnloadGameCamera(GameCamera *gCam)
+{
+    free(gCam);
+}

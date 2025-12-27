@@ -38,18 +38,11 @@ typedef enum SubStateExit
     
 } SubStateExit;
 
-typedef struct GameState
-{
-    MainGameScreenState main_game_screen_state;
-
-    SubStateLogin login_sub_state;
-    SubStateGameplay gameplay_sub_state;
-    SubStateExit exit_sub_state;
-
-} GameState;
+typedef struct GameState GameState;
 
 
-void InitGameState(GameState *gameState);
+GameState * InitGameState();
+GameState * UnloadGameState(GameState * gS);
 
 
 #endif // GAME_STATE_H
