@@ -17,6 +17,7 @@ typedef enum SubStateLogin
 {
     SUB_LOGIN_NONE = 0,
     SUB_LOGIN_WAITING,
+    SUB_LOGIN_REGISTERING,
     SUB_LOGIN_ENTERING_NAME,
     SUB_LOGIN_CONNECTING
 } SubStateLogin;
@@ -42,7 +43,14 @@ typedef struct GameState GameState;
 
 
 GameState * InitGameState();
-GameState * UnloadGameState(GameState * gS);
+GameState * UnloadGameState(GameState * gs);
+
+void UpdateGameState(GameState *gs , MainGameScreenState newState);
+void UpdateLoginState(GameState *gs , SubStateLogin newState);
+void UpdateGameplayState(GameState *gs , SubStateGameplay newState);
+void UpdateExitState(GameState *gs , SubStateExit newState);
+void HandleCurrentScreenState(GameState *gs);
+
 
 
 #endif // GAME_STATE_H

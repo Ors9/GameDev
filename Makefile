@@ -1,4 +1,6 @@
 # הגדרות כלליות
+PG_PATH = "C:/Program Files/PostgreSQL/18"
+
 CC = gcc
 TARGET = game.exe
 
@@ -10,14 +12,13 @@ LIB_DIR = lib
 # קבצי מקור (מוצא את כל קבצי ה-c בתיקיית src)
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-# דגלים לקומפיילר
-# -I אומר איפה לחפש קבצי .h
-# -L אומר איפה לחפש ספריות .lib / .a
-CFLAGS = -I$(INC_DIR) -L$(LIB_DIR) -lraylib -lopengl32 -lgdi32 -lwinmm
+INCLUDES = -I$(INC_DIR) -I$(PG_PATH)/include
+
+LIBRARIES = -L$(LIB_DIR) -L$(PG_PATH)/lib -lraylib -lpq -lopengl32 -lgdi32 -lwinmm
 
 # חוק ברירת המחדל - קימפול התוכנה
 all:
-	$(CC) $(SRCS) -o $(TARGET) $(CFLAGS)
+	$(CC) $(SRCS) -o $(TARGET) $(INCLUDES) $(LIBRARIES)
 
 # חוק לניקוי קבצים מיותרים
 clean:
