@@ -90,6 +90,12 @@ void HandleCurrentScreenState(GameState *gs)
     }
 }
 
+SubStateLogin  getLoginState(GameState *gs)
+{
+    return gs->login_sub_state;
+}
+
+
 GameState *UnloadGameState(GameState *gs)
 {
     free(gs);

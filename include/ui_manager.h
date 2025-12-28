@@ -4,6 +4,9 @@
 
 #include "game_state.h"
 
+typedef struct AuthUiState AuthUiState;
+
+
 void EnterGameScreen(int screenWidth, int screenHeight , GameState * gameState);
 void RegisterScreen(int screenWidth, int screenHeight , GameState *gameState);
 

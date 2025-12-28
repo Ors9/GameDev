@@ -44,6 +44,7 @@ typedef struct GameState GameState;
 
 GameState * InitGameState();
 GameState * UnloadGameState(GameState * gs);
+SubStateLogin   getLoginState(GameState *gs);
 
 void UpdateGameState(GameState *gs , MainGameScreenState newState);
 void UpdateLoginState(GameState *gs , SubStateLogin newState);

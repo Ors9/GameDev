@@ -3,73 +3,79 @@
 #define RAYGUI_TEXTBOX_EXTENDED
 #include "raygui.h"
 #include "ui_manager.h"
+#include "auth.h"
 
-static bool CheckIfPasswordValid(char *name, char *pass);
+static const char *AuthStatusToMessage(AUTH_STATUS status);
+static float DrawLabeledInput(Vector2 pos, float width, float height, const char *label, char *buffer, int bufferSize, bool *currentEditMode, bool *otherEdit1, bool *otherEdit2);
 
+struct AuthUiState
+{
+    char name[32];
+    char pass[32];
+    char passConfirm[32];
+    bool nameEdit;
+    bool passEdit;
+    bool confirmEdit;
+    char errorMsg[128];
+};
+
+float DrawLabeledInput(Vector2 pos, float width, float height, const char *label, char *buffer, int bufferSize, bool *currentEditMode, bool *otherEdit1, bool *otherEdit2)
+{
+    // נשלוף את גודל הפונט הנוכחי מהמערכת
+    int fontSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
+
+    // גובה הלייבל חייב להיות לפחות כמו הפונט + קצת מרווח
+    float labelHeight = fontSize + 10;
+
+    GuiSetStyle(LABEL, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+    GuiLabel((Rectangle){pos.x, pos.y, width, labelHeight}, label);
+
+    if (GuiTextBox((Rectangle){pos.x, pos.y + labelHeight, width, height}, buffer, bufferSize, *currentEditMode))
+    {
+        *currentEditMode = !(*currentEditMode);
+        if (otherEdit1)
+            *otherEdit1 = false;
+        if (otherEdit2)
+            *otherEdit2 = false;
+    }
+
+    return pos.y + labelHeight + height + 25;
+}
 void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
 {
-
     ClearBackground(RAYWHITE);
-    float btnH = 60;  // הורדתי קצת את הגובה שיהיה פרופורציונלי
-    float btnW = 400; // רוחב הגיוני יותר לטופס
+    static AuthUiState ui = {0}; // מאתחל הכל ל-0/false פעם אחת
 
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 30);
-    GuiSetStyle(LABEL, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+    float btnW = 400;
+    float btnH = 60;
+    int globalFontSize = 27;
 
-    // נקודת התחלה
-    Vector2 anchor = {(screenWidth / 2.0f) - (btnW / 2.0f), screenHeight / 6.0f};
-    float padding = 20; // רווח קבוע בין אלמנטים
+    GuiSetStyle(DEFAULT, TEXT_SIZE, globalFontSize);
 
-    // 1. כותרת
-    GuiLabel((Rectangle){anchor.x, anchor.y, btnW, btnH}, "SUMMONER LOGIN");
-    anchor.y += btnH + padding; // זזים למטה: גובה האלמנט + רווח
+    Vector2 pos = {(screenWidth / 2.0f) - (btnW / 2.0f), screenHeight / 6.0f};
 
-    // 2. תווית לשם
-    GuiLabel((Rectangle){anchor.x, anchor.y, btnW, 30}, "Enter Name:");
-    anchor.y += 35; // רווח קטן בין התווית לתיבה
+    // כותרת
+    GuiLabel((Rectangle){pos.x, pos.y, btnW, btnH}, "SUMMONER LOGIN");
+    pos.y += btnH + 25;
 
-    // 3. תיבת טקסט לשם
-    static char nameBuffer[32] = "";
-    static bool nameEditMode = false;
-    static char passBuffer[32] = "";
-    static bool passEditMode = false;
+    // שדות קלט
+    pos.y = DrawLabeledInput(pos, btnW, btnH, "Enter Name:", ui.name, 32, &ui.nameEdit, &ui.passEdit, NULL);
+    pos.y = DrawLabeledInput(pos, btnW, btnH, "Enter Password:", ui.pass, 32, &ui.passEdit, &ui.nameEdit, NULL);
 
-    // אם לוחצים על התיבה, היא הופכת לפעילה והשנייה לכבויה
-    if (GuiTextBox((Rectangle){anchor.x, anchor.y, btnW, btnH}, nameBuffer, 32, nameEditMode))
+    // כפתור התחברות
+    if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "LOG IN"))
     {
-        nameEditMode = !nameEditMode;
-        passEditMode = false; // מכבה את הסיסמה כשאנחנו בשם
-    }
-
-    anchor.y += btnH + padding;
-
-    // 4. תווית לסיסמה
-    GuiLabel((Rectangle){anchor.x, anchor.y, btnW, 30}, "Enter Password:");
-    anchor.y += 35;
-
-    // 5. תיבת טקסט לסיסמה
-    if (GuiTextBox((Rectangle){anchor.x, anchor.y, btnW, btnH}, passBuffer, 32, passEditMode))
-    {
-        passEditMode = !passEditMode;
-        nameEditMode = false; // מכבה את השם כשאנחנו בסיסמה
-    }
-
-    anchor.y += btnH + padding;
-
-    // 6. כפתור התחברות
-    if (GuiButton((Rectangle){anchor.x, anchor.y, btnW, btnH}, "LOG IN"))
-    {
-        if (strcmp(nameBuffer, "admin") == 0 && strcmp(passBuffer, "1234") == 0)
+        if (strcmp(ui.name, "admin") == 0 && strcmp(ui.pass, "1234") == 0)
         {
             UpdateLoginState(gameState, SUB_LOGIN_CONNECTING);
-            UpdateGameState(gameState , STATE_GAMEPLAY);
+            UpdateGameState(gameState, STATE_GAMEPLAY);
         }
-        CheckIfPasswordValid(nameBuffer, passBuffer);
+        // TO DO!!!!!!!!!!!!!!!!!!!!!!!
     }
+    pos.y += btnH + 20;
 
-    anchor.y += btnH + padding;
-
-    if (GuiButton((Rectangle){anchor.x, anchor.y, btnW, btnH}, "Register"))
+    // כפתור מעבר להרשמה
+    if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "Register"))
     {
         UpdateLoginState(gameState, SUB_LOGIN_REGISTERING);
     }
@@ -78,93 +84,82 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
 void RegisterScreen(int screenWidth, int screenHeight, GameState *gameState)
 {
     ClearBackground(RAYWHITE);
-    float btnH = 60;  // הורדתי קצת את הגובה שיהיה פרופורציונלי
-    float btnW = 400; // רוחב הגיוני יותר לטופס
 
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 30);
-    GuiSetStyle(LABEL, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+    static AuthUiState ui = {0};
 
-    // נקודת התחלה
-    Vector2 anchor = {(screenWidth / 2.0f) - (btnW / 2.0f), screenHeight / 6.0f};
-    float padding = 20; // רווח קבוע בין אלמנטים
+    float btnW = 400;
+    float btnH = 60;
+    int globalFontSize = 27;
 
-    // 1. כותרת
-    GuiLabel((Rectangle){anchor.x, anchor.y, btnW, btnH}, "SUMMONER Register Page");
-    anchor.y += btnH + padding; // זזים למטה: גובה האלמנט + רווח
+    GuiSetStyle(DEFAULT, TEXT_SIZE, globalFontSize);
+    Vector2 pos = {(screenWidth / 2.0f) - (btnW / 2.0f), screenHeight / 10.0f};
 
-    // 2. תווית לשם
-    GuiLabel((Rectangle){anchor.x, anchor.y, btnW, 30}, "Enter Name:");
-    anchor.y += 35; // רווח קטן בין התווית לתיבה
+    // כותרת
+    GuiLabel((Rectangle){pos.x, pos.y, btnW, btnH}, "SUMMONER REGISTER");
+    pos.y += btnH + 20;
 
-    // 3. תיבת טקסט לשם
-    static char nameBuffer[32] = "";
-    static bool nameEditMode = false;
-    static char passBuffer[32] = "";
-    static bool passEditMode = false;
-    static char passBufferCheck[32] = "";
-    static bool passEditModeCheck = false;
+    // שדות קלט - שימוש חוזר בפונקציית העזר
+    pos.y = DrawLabeledInput(pos, btnW, btnH, "Name:", ui.name, 32, &ui.nameEdit, &ui.passEdit, &ui.confirmEdit);
+    pos.y = DrawLabeledInput(pos, btnW, btnH, "Password:", ui.pass, 32, &ui.passEdit, &ui.nameEdit, &ui.confirmEdit);
+    pos.y = DrawLabeledInput(pos, btnW, btnH, "Confirm Password:", ui.passConfirm, 32, &ui.confirmEdit, &ui.nameEdit, &ui.passEdit);
 
-    // אם לוחצים על התיבה, היא הופכת לפעילה והשנייה לכבויה
-    if (GuiTextBox((Rectangle){anchor.x, anchor.y, btnW, btnH}, nameBuffer, 32, nameEditMode))
+    // הצגת שגיאה (אם קיימת)
+    if (ui.errorMsg[0] != '\0')
     {
-        nameEditMode = !nameEditMode;
-        passEditMode = false; // מכבה את הסיסמה כשאנחנו בשם
+        GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, ColorToInt(RED));
+        GuiLabel((Rectangle){pos.x, pos.y, btnW, 40}, ui.errorMsg);
+        GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, ColorToInt(DARKGRAY));
+        pos.y += 45;
     }
 
-    anchor.y += btnH + padding;
-
-    // 4. תווית לסיסמה
-    GuiLabel((Rectangle){anchor.x, anchor.y, btnW, 30}, "Enter Password:");
-    anchor.y += 35;
-
-    // 5. תיבת טקסט לסיסמה
-    if (GuiTextBox((Rectangle){anchor.x, anchor.y, btnW, btnH}, passBuffer, 32, passEditMode))
+    if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "REGISTER NOW"))
     {
-        passEditMode = !passEditMode;
-        passEditModeCheck = false;
-        nameEditMode = false; // מכבה את השם כשאנחנו בסיסמה
-    }
-
-    anchor.y += btnH + padding;
-
-    GuiLabel((Rectangle){anchor.x, anchor.y, btnW, 30}, "Enter Password again for check:");
-    anchor.y += 35;
-
-    // 5. תיבת טקסט לסיסמה
-    if (GuiTextBox((Rectangle){anchor.x, anchor.y, btnW, btnH}, passBufferCheck, 32, passEditModeCheck))
-    {
-        passEditModeCheck = !passEditModeCheck;
-        passEditMode = false;
-        nameEditMode = false; // מכבה את השם כשאנחנו בסיסמה
-    }
-
-    anchor.y += btnH + padding;
-
-    if (GuiButton((Rectangle){anchor.x, anchor.y, btnW, btnH}, "REGISTER NOW"))
-    {
-        if (strlen(passBuffer) < 6)
+        AUTH_STATUS status = HandleRegisterRules(ui.name, ui.pass, ui.passConfirm);
+        if (status == AUTH_SUCCESS)
         {
-            // invalid pass message
-        }
-        if (strlen(nameBuffer) < 6)
-        {
-        }
-        if (strcmp(passBuffer, passBufferCheck) != 0)
-        {
-            // invalid pass message
+            ui.errorMsg[0] = '\0';
+            UpdateLoginState(gameState, SUB_LOGIN_ENTERING_NAME);
+            //Valid to do!!
         }
         else
         {
-            // need to check in database if name exists and add if valid
+            strncpy(ui.errorMsg, AuthStatusToMessage(status), 127);
         }
     }
-    anchor.y += btnH + padding;
-    if (GuiButton((Rectangle){anchor.x, anchor.y, btnW, btnH}, "BACK"))
+    pos.y += btnH + 20;
+
+    if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "BACK"))
     {
+        memset(&ui, 0, sizeof(AuthUiState));
         UpdateLoginState(gameState, SUB_LOGIN_ENTERING_NAME);
     }
 }
 
-static bool CheckIfPasswordValid(char *name, char *pass)
+static const char *AuthStatusToMessage(AUTH_STATUS status)
 {
+    switch (status)
+    {
+    case AUTH_SUCCESS:
+        return "";
+    case NAME_EMPTY:
+        return "Error: Name cannot be empty!";
+    case NAME_TOO_SHORT:
+        return "Error: Name is too short!";
+    case NAME_TOO_LONG:
+        return "Error: Name is too long!";
+    case NAME_INVALID_COMPLEXITY:
+        return "Error: Name contains invalid characters!";
+    case PASS_EMPTY:
+        return "Error: Password cannot be empty!";
+    case PASS_TOO_SHORT:
+        return "Error: Password too short!";
+    case PASS_TOO_LONG:
+        return "Error: Password too long!";
+    case PASS_MISMATCH:
+        return "Error: Passwords do not match!";
+    case PASS_INVALID_COMPLEXITY:
+        return "Error: Password is too weak!";
+    default:
+        return "Error: Unknown authentication error.";
+    }
 }
