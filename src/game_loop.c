@@ -4,13 +4,15 @@
 #include "camera_manager.h"
 #include "game_state.h" // שינוי למירכאות
 #include "ui_manager.h"
+#include "db_manager.h"
 
-static void UnloadGamePointers(Player *player, Enemy *enemy, GameCamera *gCam, GameState *gameState)
+static void UnloadGamePointers(Player *player, Enemy *enemy, GameCamera *gCam, GameState *gameState , PGconn * dataBase)
 {
     UnloadPlayer(player);
     UnloadEnemy(enemy);
     UnloadGameCamera(gCam);
     UnloadGameState(gameState);
+    PQfinish(dataBase);
 }
 
 void StartGame()
@@ -26,7 +28,9 @@ void StartGame()
 
     GameState *gameState = InitGameState();
     GameCamera *gCam = InitGameCamera();
-
+ 
+    PGconn * dataBase = ConnectToDatabase();
+ 
     SetTargetFPS(60);
 
     while (!WindowShouldClose())
@@ -59,7 +63,7 @@ void StartGame()
     }
 
     // שחרור זיכרון מסודר
-    UnloadGamePointers(player, enemy, gCam, gameState);
+    UnloadGamePointers(player, enemy, gCam, gameState , dataBase);
 
     CloseWindow();
 }

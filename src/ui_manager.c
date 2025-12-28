@@ -72,7 +72,6 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
     if (GuiButton((Rectangle){anchor.x, anchor.y, btnW, btnH}, "Register"))
     {
         UpdateLoginState(gameState, SUB_LOGIN_REGISTERING);
-        puts("update too SUB_LOGIN_REGISTERING");
     }
 }
 

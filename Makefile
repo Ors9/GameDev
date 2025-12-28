@@ -1,25 +1,19 @@
 # הגדרות כלליות
-PG_PATH = "C:/Program Files/PostgreSQL/18"
-
+PG_PATH = C:/Program Files/PostgreSQL/18
 CC = gcc
 TARGET = game.exe
-
-# נתיבים
 SRC_DIR = src
-INC_DIR = include
 LIB_DIR = lib
-
-# קבצי מקור (מוצא את כל קבצי ה-c בתיקיית src)
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-INCLUDES = -I$(INC_DIR) -I$(PG_PATH)/include
+# Includes - הוספתי גרשיים מסביב לכל נתיב שיש בו פוטנציאל לרווחים
+INCLUDES = -Iinclude -Ideps/raylib/include -Ideps/libsodium-win64/include -Ideps/raygui -I"$(PG_PATH)/include"
 
-LIBRARIES = -L$(LIB_DIR) -L$(PG_PATH)/lib -lraylib -lpq -lopengl32 -lgdi32 -lwinmm
+# Libraries - הכל בשורה אחת כדי למנוע טעויות לוכסן
+LIBRARIES = -L. -L$(LIB_DIR) -L"$(PG_PATH)/lib" -Ldeps/libsodium-win64/lib -Ldeps/raylib/lib -lraylib -lpq -lsodium -lws2_32 -lsecur32 -lshlwapi -lwldap32 -lopengl32 -lgdi32 -lwinmm
 
-# חוק ברירת המחדל - קימפול התוכנה
 all:
 	$(CC) $(SRCS) -o $(TARGET) $(INCLUDES) $(LIBRARIES)
 
-# חוק לניקוי קבצים מיותרים
 clean:
-	del $(TARGET)
+	rm -f $(TARGET)
