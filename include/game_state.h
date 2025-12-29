@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "raymath.h"
+#include <libpq-fe.h>
 
 
 // הגדרת מצבי המשחק השונים
@@ -51,6 +52,7 @@ void UpdateLoginState(GameState *gs , SubStateLogin newState);
 void UpdateGameplayState(GameState *gs , SubStateGameplay newState);
 void UpdateExitState(GameState *gs , SubStateExit newState);
 void HandleCurrentScreenState(GameState *gs);
+PGconn * getDataBase(GameState *gs);
 
 
 

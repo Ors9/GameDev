@@ -6,13 +6,13 @@
 #include "ui_manager.h"
 #include "db_manager.h"
 
-static void UnloadGamePointers(Player *player, Enemy *enemy, GameCamera *gCam, GameState *gameState , PGconn * dataBase)
+static void UnloadGamePointers(Player *player, Enemy *enemy, GameCamera *gCam, GameState *gameState )
 {
     UnloadPlayer(player);
     UnloadEnemy(enemy);
     UnloadGameCamera(gCam);
     UnloadGameState(gameState);
-    PQfinish(dataBase);
+
 }
 
 void StartGame()
@@ -29,7 +29,7 @@ void StartGame()
     GameState *gameState = InitGameState();
     GameCamera *gCam = InitGameCamera();
  
-    PGconn * dataBase = ConnectToDatabase();
+    
  
     SetTargetFPS(60);
 
@@ -63,7 +63,7 @@ void StartGame()
     }
 
     // שחרור זיכרון מסודר
-    UnloadGamePointers(player, enemy, gCam, gameState , dataBase);
+    UnloadGamePointers(player, enemy, gCam, gameState );
 
     CloseWindow();
 }

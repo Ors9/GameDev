@@ -2,6 +2,20 @@
 #include <string.h>
 #include <stdbool.h>
 #include <auth.h>
+#include "sodium.h"
+
+
+
+bool HashedPassword(const char *password, char hashedPassword []){
+
+    int r = crypto_pwhash_str(hashedPassword , password , strlen(password) , crypto_pwhash_OPSLIMIT_INTERACTIVE , crypto_pwhash_MEMLIMIT_INTERACTIVE );
+    if(r == -1 || r != 0){
+        fprintf(stderr , "crypto_pwash_str failed at HashedPassword\n");
+        return false;
+    }
+
+    return true;
+}
 
 static bool IsComplexityValid(const char *input)
 {

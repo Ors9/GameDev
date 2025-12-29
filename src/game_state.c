@@ -2,6 +2,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "ui_manager.h"
+#include "db_manager.h"
+
 
 static void HandleStateLogin(GameState *gs);
 
@@ -12,6 +14,7 @@ struct GameState
     SubStateLogin login_sub_state;
     SubStateGameplay gameplay_sub_state;
     SubStateExit exit_sub_state;
+    PGconn * dataBase;
 };
 
 GameState *InitGameState()
@@ -28,7 +31,7 @@ GameState *InitGameState()
     gs->login_sub_state = SUB_LOGIN_ENTERING_NAME;
     gs->gameplay_sub_state = SUB_GAMEPLAY_NONE;
     gs->exit_sub_state = SUB_EXIT_NONE;
-
+    gs->dataBase = ConnectToDatabase(); 
     return gs;
 }
 
@@ -72,6 +75,10 @@ static void HandleStateLogin(GameState *gs)
     }
 }
 
+PGconn * getDataBase(GameState *gs)
+{
+    return gs->dataBase;
+}
 
 
 void HandleCurrentScreenState(GameState *gs)
@@ -98,6 +105,7 @@ SubStateLogin  getLoginState(GameState *gs)
 
 GameState *UnloadGameState(GameState *gs)
 {
+    PQfinish(gs->dataBase);
     free(gs);
     return NULL;
 }

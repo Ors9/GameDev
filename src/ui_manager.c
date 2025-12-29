@@ -4,6 +4,7 @@
 #include "raygui.h"
 #include "ui_manager.h"
 #include "auth.h"
+#include "db_manager.h"
 
 static const char *AuthStatusToMessage(AUTH_STATUS status);
 static float DrawLabeledInput(Vector2 pos, float width, float height, const char *label, char *buffer, int bufferSize, bool *currentEditMode, bool *otherEdit1, bool *otherEdit2);
@@ -39,7 +40,7 @@ float DrawLabeledInput(Vector2 pos, float width, float height, const char *label
             *otherEdit2 = false;
     }
 
-    return pos.y + labelHeight + height + 25;
+    return pos.y + labelHeight + height + 30;
 }
 void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
 {
@@ -70,7 +71,16 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
             UpdateLoginState(gameState, SUB_LOGIN_CONNECTING);
             UpdateGameState(gameState, STATE_GAMEPLAY);
         }
-        // TO DO!!!!!!!!!!!!!!!!!!!!!!!
+
+        if (ConnectToGame(ui.name, ui.pass, getDataBase(gameState)) == true)
+        {
+            UpdateLoginState(gameState, SUB_LOGIN_CONNECTING);
+            UpdateGameState(gameState, STATE_GAMEPLAY);
+        }
+        else
+        {
+            // TO DO MESSAGE ERROR
+        }
     }
     pos.y += btnH + 20;
 
@@ -96,7 +106,7 @@ void RegisterScreen(int screenWidth, int screenHeight, GameState *gameState)
 
     // כותרת
     GuiLabel((Rectangle){pos.x, pos.y, btnW, btnH}, "SUMMONER REGISTER");
-    pos.y += btnH + 20;
+    pos.y += btnH + 40;
 
     // שדות קלט - שימוש חוזר בפונקציית העזר
     pos.y = DrawLabeledInput(pos, btnW, btnH, "Name:", ui.name, 32, &ui.nameEdit, &ui.passEdit, &ui.confirmEdit);
@@ -109,25 +119,44 @@ void RegisterScreen(int screenWidth, int screenHeight, GameState *gameState)
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, ColorToInt(RED));
         GuiLabel((Rectangle){pos.x, pos.y, btnW, 40}, ui.errorMsg);
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, ColorToInt(DARKGRAY));
-        pos.y += 45;
+        pos.y += 55;
     }
 
     if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "REGISTER NOW"))
     {
-        AUTH_STATUS status = HandleRegisterRules(ui.name, ui.pass, ui.passConfirm);
-        if (status == AUTH_SUCCESS)
+        AUTH_STATUS status;
+        if (CheckIfUserExists(ui.name, getDataBase(gameState)) == true)
         {
-            ui.errorMsg[0] = '\0';
-            UpdateLoginState(gameState, SUB_LOGIN_ENTERING_NAME);
-            //Valid to do!!
+            strncpy(ui.errorMsg, "Error: Name already exists!", 127);
+            status = USER_ALREADY_EXISTS;
         }
         else
         {
-            strncpy(ui.errorMsg, AuthStatusToMessage(status), 127);
+            status = HandleRegisterRules(ui.name, ui.pass, ui.passConfirm);
+            if (status == AUTH_SUCCESS)
+            {
+                ui.errorMsg[0] = '\0';
+            }
+            else
+            {
+                strncpy(ui.errorMsg, AuthStatusToMessage(status), 127);
+            }
+        }
+
+        if (status == AUTH_SUCCESS)
+        {
+            if (AddUserToDatabase(ui.name, ui.pass, getDataBase(gameState)) == false)
+            {
+                strncpy(ui.errorMsg, "Error: System failure. Try again later.", 127);
+            }
+            else
+            {
+                memset(&ui, 0, sizeof(AuthUiState));
+                UpdateLoginState(gameState, SUB_LOGIN_ENTERING_NAME);
+            }
         }
     }
-    pos.y += btnH + 20;
-
+    pos.y += btnH + 30;
     if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "BACK"))
     {
         memset(&ui, 0, sizeof(AuthUiState));

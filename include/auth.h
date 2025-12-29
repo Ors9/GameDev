@@ -22,4 +22,7 @@ typedef enum {
 
 AUTH_STATUS HandleRegisterRules(char *name, char *pass, char *passCheck);
 
+bool HashedPassword(const char *password, char hashedPassword []);
+
+
 #endif
