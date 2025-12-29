@@ -63,6 +63,14 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
     pos.y = DrawLabeledInput(pos, btnW, btnH, "Enter Name:", ui.name, 32, &ui.nameEdit, &ui.passEdit, NULL);
     pos.y = DrawLabeledInput(pos, btnW, btnH, "Enter Password:", ui.pass, 32, &ui.passEdit, &ui.nameEdit, NULL);
 
+    if (ui.errorMsg[0] != '\0')
+    {
+        GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, ColorToInt(RED));
+        GuiLabel((Rectangle){pos.x, pos.y, btnW, 40}, ui.errorMsg);
+        GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, ColorToInt(DARKGRAY));
+        pos.y += 45;
+    }
+
     // כפתור התחברות
     if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "LOG IN"))
     {
@@ -71,15 +79,10 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
             UpdateLoginState(gameState, SUB_LOGIN_CONNECTING);
             UpdateGameState(gameState, STATE_GAMEPLAY);
         }
-
-        if (ConnectToGame(ui.name, ui.pass, getDataBase(gameState)) == true)
+        else if (ConnectToGame(ui.name, ui.pass, getDataBase(gameState), ui.errorMsg) == true)
         {
             UpdateLoginState(gameState, SUB_LOGIN_CONNECTING);
             UpdateGameState(gameState, STATE_GAMEPLAY);
-        }
-        else
-        {
-            // TO DO MESSAGE ERROR
         }
     }
     pos.y += btnH + 20;
@@ -125,9 +128,8 @@ void RegisterScreen(int screenWidth, int screenHeight, GameState *gameState)
     if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "REGISTER NOW"))
     {
         AUTH_STATUS status;
-        if (CheckIfUserExists(ui.name, getDataBase(gameState)) == true)
+        if (CheckIfUserExists(ui.name, getDataBase(gameState) , ui.errorMsg) == true)
         {
-            strncpy(ui.errorMsg, "Error: Name already exists!", 127);
             status = USER_ALREADY_EXISTS;
         }
         else
@@ -145,11 +147,7 @@ void RegisterScreen(int screenWidth, int screenHeight, GameState *gameState)
 
         if (status == AUTH_SUCCESS)
         {
-            if (AddUserToDatabase(ui.name, ui.pass, getDataBase(gameState)) == false)
-            {
-                strncpy(ui.errorMsg, "Error: System failure. Try again later.", 127);
-            }
-            else
+            if (AddUserToDatabase(ui.name, ui.pass, getDataBase(gameState), ui.errorMsg) == true)
             {
                 memset(&ui, 0, sizeof(AuthUiState));
                 UpdateLoginState(gameState, SUB_LOGIN_ENTERING_NAME);

@@ -19,7 +19,7 @@ PGconn *ConnectToDatabase()
     return conn;
 }
 
-bool ConnectToGame(const char *name, const char *pass, PGconn *dataBase)
+bool ConnectToGame(const char *name, const char *pass, PGconn *dataBase, char *outErrorMsg)
 {
     // 1. שאילתה ספציפית לעמודה של ה-Hash
     const char *sql = "SELECT password_hash FROM users WHERE username = $1";
@@ -33,7 +33,7 @@ bool ConnectToGame(const char *name, const char *pass, PGconn *dataBase)
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
-        fprintf(stderr, "Query failed: %s\n", PQerrorMessage(dataBase));
+        strncpy(outErrorMsg, "Database error. Try again later.", 127);
         PQclear(res);
         return false;
     }
@@ -42,7 +42,7 @@ bool ConnectToGame(const char *name, const char *pass, PGconn *dataBase)
     if (PQntuples(res) == 0)
     {
         // כאן תוכל לעדכן את ui.errorMsg במסך ה-Login
-        printf("User Name not found\n");
+        strncpy(outErrorMsg, "User name not exists", 127);
         PQclear(res);
         return false;
     }
@@ -54,24 +54,26 @@ bool ConnectToGame(const char *name, const char *pass, PGconn *dataBase)
     if (crypto_pwhash_str_verify(dbHash, pass, strlen(pass)) != 0)
     {
         PQclear(res);
-        printf("Password does not match\n");
+        strncpy(outErrorMsg, "Invalid password!", 127);
         return false;
     }
 
     // 7. הצלחה!
     PQclear(res);
+    sodium_memzero((void *)pass, strlen(pass));
+
     printf("Success login!\n");
+    outErrorMsg[0] = '\0';
     return true;
 }
 
-bool AddUserToDatabase(const char *name, const char *pass, PGconn *dataBase)
+bool AddUserToDatabase(const char *name, const char *pass, PGconn *dataBase, char *outErrorMsg)
 {
     const char *sql = "Insert into users (username,password_hash) values ($1,$2)";
     char hashedPass[crypto_pwhash_STRBYTES];
     if (HashedPassword(pass, hashedPass) == false)
     {
-        printf("To do update UI message error");
-        fprintf(stderr, "Failed to hash password\n");
+        strncpy(outErrorMsg, "Critical: Could not secure password.", 127);
         return false;
     }
     const char *paramValues[2];
@@ -81,35 +83,40 @@ bool AddUserToDatabase(const char *name, const char *pass, PGconn *dataBase)
     PGresult *res = PQexecParams(dataBase, sql, 2, NULL, paramValues, NULL, NULL, 0);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
-        fprintf(stderr, "DB Error: %s\n", PQerrorMessage(dataBase));
+        strncpy(outErrorMsg, "Registration failed: Server error.", 127);
         PQclear(res);
         return false;
     }
 
     PQclear(res);
-    printf("Success register! TO DO UI message");
+    sodium_memzero((void *)pass, strlen(pass));
+    outErrorMsg[0] = '\0';
     return true;
 }
 
-bool CheckIfUserExists(const char *name, PGconn *dataBase)
+bool CheckIfUserExists(const char *name, PGconn *dataBase, char *outErrorMsg)
 {
-    const char *sql = "select * from users where username = $1";
-
-    const char *paramValues[1];
-    paramValues[0] = name;
+    const char *sql = "SELECT 1 FROM users WHERE username = $1";
+    const char *paramValues[1] = {name};
 
     PGresult *res = PQexecParams(dataBase, sql, 1, NULL, paramValues, NULL, NULL, 0);
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
-        fprintf(stderr, "Query failed: %s\n", PQerrorMessage(dataBase));
+        strncpy(outErrorMsg, "Database link failed.", 127);
         PQclear(res);
         return false;
     }
 
     int rows = PQntuples(res);
-
     PQclear(res);
 
-    return rows > 0;
+    if (rows > 0)
+    {
+        strncpy(outErrorMsg, "Username is already taken!", 127);
+        return true; 
+    }
+
+    outErrorMsg[0] = '\0';
+    return false; 
 }

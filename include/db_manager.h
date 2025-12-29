@@ -7,8 +7,8 @@
 
 
 PGconn * ConnectToDatabase();
-bool CheckIfUserExists(const char *name , PGconn * dataBase);
-bool AddUserToDatabase(const char *name, const char *pass, PGconn *dataBase);
-bool ConnectToGame(const char *name, const char *pass, PGconn *dataBase);
+bool CheckIfUserExists(const char *name , PGconn * dataBase , char *outErrorMsg);
+bool AddUserToDatabase(const char *name, const char *pass, PGconn *dataBase , char *outErrorMsg);
+bool ConnectToGame(const char *name, const char *pass, PGconn *dataBase , char *outErrorMsg);
 
-#endif
+#endif // DB_MANAGER_H
