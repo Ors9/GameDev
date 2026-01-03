@@ -2,7 +2,7 @@
 #define ENEMY_H
 
 #include "raylib.h"
-#include "player.h"
+#include "characters.h"
 #include "stdlib.h"
 #include <stdio.h>
 

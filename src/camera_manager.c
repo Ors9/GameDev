@@ -39,19 +39,30 @@ Camera3D GetRaylibCamera(GameCamera *gCam)
     return gCam->raylibCam;
 }
 
+void MyUpdateCamera(GameCamera *gCam, Vector3 targetPos, float deltaTime)
+{
+
+    gCam->raylibCam.target = targetPos;
+
+    gCam->raylibCam.position = (Vector3){
+        targetPos.x,
+        targetPos.y + gCam->height,
+        targetPos.z + gCam->offsetDistance};
+}
+
 void UpdateGameCamera(GameCamera *gCam, Player *player, float deltaTime)
 {
     Vector3 playerPos = GetPlayerPosition(player);
-    Camera3D camera = gCam->raylibCam;
 
-    // 1. המצלמה מסתכלת תמיד למרכז השחקן
-    gCam->raylibCam.target = playerPos;
-
-    // 2. המצלמה תמיד נמצאת בדיוק 10 יחידות מעל ו-20 יחידות מאחורי השחקן
-    gCam->raylibCam.position = (Vector3){playerPos.x, playerPos.y + 10.0f, playerPos.z + 20.0f};
+    // קוראים לפונקציה הכללית שלנו
+    MyUpdateCamera(gCam, playerPos, deltaTime);
 }
 
 void UnloadGameCamera(GameCamera *gCam)
 {
-    free(gCam);
+    if (gCam != NULL)
+    {
+        free(gCam);
+        printf("Camera memory cleared.\n");
+    }
 }

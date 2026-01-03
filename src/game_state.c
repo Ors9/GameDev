@@ -1,23 +1,27 @@
 #include "game_state.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "ui_manager.h"
-#include "db_manager.h"
+#include "auth/auth_ui_manager.h"
+#include "auth/db_auth_manager.h"
+#include "choose_character_ui.h"
+#include <assets_manager.h>
+#include <camera_manager.h>
 
 
 static void HandleStateLogin(GameState *gs);
 
 struct GameState
 {
+    AssetManager *assets;
     MainGameScreenState main_game_screen_state;
-
     SubStateLogin login_sub_state;
     SubStateGameplay gameplay_sub_state;
     SubStateExit exit_sub_state;
+    GameCamera * mainCamera;
     PGconn * dataBase;
 };
 
-GameState *InitGameState()
+GameState *InitGameState(AssetManager *asset , GameCamera * mainCamera)
 {
 
     GameState *gs = malloc(sizeof(GameState));
@@ -27,6 +31,8 @@ GameState *InitGameState()
         exit(1);
     }
 
+    gs->mainCamera = mainCamera;
+    gs->assets = asset;
     gs->main_game_screen_state = STATE_LOGIN;
     gs->login_sub_state = SUB_LOGIN_ENTERING_NAME;
     gs->gameplay_sub_state = SUB_GAMEPLAY_NONE;
@@ -35,10 +41,23 @@ GameState *InitGameState()
     return gs;
 }
 
+MainGameScreenState GetMainGameState(GameState *gs)
+{
+    return gs->main_game_screen_state;
+}
+
+
+
 void UpdateGameState(GameState *gs, MainGameScreenState newState)
 {
     gs->main_game_screen_state = newState;
 }
+
+GameCamera *GetMainCamera(GameState *gs)
+{
+    return gs->mainCamera;
+}
+
 
 void UpdateLoginState(GameState *gs, SubStateLogin newState)
 {
@@ -55,6 +74,12 @@ void UpdateExitState(GameState *gs, SubStateExit newState)
     gs->exit_sub_state = newState;
 }
 
+AssetManager * getAssetManager(GameState *gs)
+{
+    return gs->assets;
+}
+
+
 static void HandleStateLogin(GameState *gs)
 {
     SubStateLogin loginState = gs->login_sub_state;
@@ -70,6 +95,12 @@ static void HandleStateLogin(GameState *gs)
     case SUB_LOGIN_ENTERING_NAME:
         EnterGameScreen(1600, 900, gs);
         break;
+    case SUB_LOGIN_CHOOSE_CHARACTER:
+        ChoosePlayerScreen(1600, 900,gs);
+        break;
+    case SUB_LOGIN_CREATE_CHARACTER:
+        CreateCharacterScreen(1600, 900, gs);
+        break;   
     case SUB_LOGIN_CONNECTING:
         break;
     }
@@ -105,7 +136,26 @@ SubStateLogin  getLoginState(GameState *gs)
 
 GameState *UnloadGameState(GameState *gs)
 {
-    PQfinish(gs->dataBase);
+    if (gs == NULL) return NULL;
+
+    // 1. סגירת מסד הנתונים
+    if (gs->dataBase) {
+        PQfinish(gs->dataBase);
+    }
+
+    // 2. שחרור המצלמה (אם היא הוקצתה ב-malloc)
+    if (gs->mainCamera) {
+        UnloadGameCamera(gs->mainCamera);
+    }
+
+    // 3. שחרור המשאבים (Assets) - רק אם ה-GameState אחראי עליהם
+    // UnloadAssetManager(gs->assets); 
+
+    // 4. שחרור המבנה עצמו
     free(gs);
+
+    
+
+    printf("GameState unloaded successfully.\n");
     return NULL;
 }

@@ -3,6 +3,10 @@
 *.out
 *.app
 
+# Heavy original assets
+assets/GameOriginalAssets/
+assets/model/Enivorment/*.glb
+
 # קבצי אובייקט וספריות (Object files & Libraries)
 *.o
 *.obj
