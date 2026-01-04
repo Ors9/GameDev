@@ -376,7 +376,9 @@ void UnloadPlayer(Player *player)
         free(player->stats);
         player->stats = NULL; // ניקוי המצביע לאחר השחרור
     }
+    
 
     free(player);
+    player = NULL;
     printf("Player memory cleared successfully.\n");
 }

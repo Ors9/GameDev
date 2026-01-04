@@ -70,5 +70,8 @@ void UnloadEnemy(Enemy *enemy)
     if (enemy != NULL)
     {
         free(enemy);
+        enemy = NULL;
+        
     }
+    printf("Enemy memory cleared successfully.\n");
 }

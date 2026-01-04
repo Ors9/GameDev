@@ -63,6 +63,7 @@ void UnloadGameCamera(GameCamera *gCam)
     if (gCam != NULL)
     {
         free(gCam);
+        gCam = NULL;
         printf("Camera memory cleared.\n");
     }
 }

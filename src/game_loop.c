@@ -7,13 +7,14 @@
 #include "auth/db_auth_manager.h"
 #include <assets_manager.h>
 
-static void UnloadGamePointers(Player *player, Enemy *enemy, GameCamera *gCam, GameState *gameState , AssetManager *assets)
+static void UnloadGamePointers(Player *player, Enemy *enemy, GameCamera *gCam, GameState *gameState, AssetManager *assets)
 {
     UnloadPlayer(player);
     UnloadEnemy(enemy);
     UnloadGameCamera(gCam);
-    UnloadGameState(gameState);
-    UnloadAssetsManager(assets);
+    UnloadGameState(gameState);  
+    UnloadAssetsManager(assets); 
+    printf("Done memory clearing.\n");
 }
 
 void StartGame()
@@ -29,7 +30,7 @@ void StartGame()
     Enemy *enemy = InitEnemy();
 
     GameCamera *gCam = InitGameCamera();
-    GameState *gameState = InitGameState(assets , gCam);
+    GameState *gameState = InitGameState(assets, gCam);
     // Model testModel = LoadModel("assets/model/Enivorment/floorGLB.glb"); // TESTTTTTTT
 
     SetTargetFPS(60);
@@ -40,7 +41,7 @@ void StartGame()
 
         // --- 1. Update (לוגיקה) ---
         UpdateEnemy(enemy, player, deltaTime);
-        UpdatePlayer(player, deltaTime , gameState);
+        UpdatePlayer(player, deltaTime, gameState);
         UpdateGameCamera(gCam, player, deltaTime);
 
         // --- 2. Draw (ציור) ---
@@ -65,7 +66,7 @@ void StartGame()
     }
 
     // שחרור זיכרון מסודר
-    UnloadGamePointers(player, enemy, gCam, gameState , assets);
+    UnloadGamePointers(player, enemy, gCam, gameState, assets);
 
     CloseWindow();
 }

@@ -131,7 +131,7 @@ void UnloadAssetsManager(AssetManager *assets)
     {
         // 1. שחרור המודל מהכרטיס הגרפי
         UnloadModel(assets->classResources[i].model);
-
+        
         // 2. שחרור כל מערכי האנימציות שנטענו
         for (int j = 0; j < ANIM_COUNT; j++)
         {
@@ -140,8 +140,13 @@ void UnloadAssetsManager(AssetManager *assets)
                 // Raylib דורשת את המצביע ואת הכמות ששמרנו
                 UnloadModelAnimations(assets->classResources[i].animations[j], assets->classResources[i].animCounts[j]);
                 assets->classResources[i].animations[j] = NULL;
+      
             }
         }
         assets->classResources[i].isLoaded = false;
     }
+
+    free(assets);
+    assets = NULL;
+    printf("Assets memory cleared successfully.\n");
 }

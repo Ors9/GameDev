@@ -136,26 +136,29 @@ SubStateLogin  getLoginState(GameState *gs)
 
 GameState *UnloadGameState(GameState *gs)
 {
-    if (gs == NULL) return NULL;
+  
+    if (gs == NULL) 
+    {
+        return NULL;
+    }
+    
 
     // 1. סגירת מסד הנתונים
-    if (gs->dataBase) {
+    if (gs->dataBase != NULL) {
         PQfinish(gs->dataBase);
+        gs->dataBase = NULL;
+        puts("Database closed.");
     }
 
-    // 2. שחרור המצלמה (אם היא הוקצתה ב-malloc)
-    if (gs->mainCamera) {
-        UnloadGameCamera(gs->mainCamera);
-    }
+ 
 
-    // 3. שחרור המשאבים (Assets) - רק אם ה-GameState אחראי עליהם
-    // UnloadAssetManager(gs->assets); 
 
     // 4. שחרור המבנה עצמו
     free(gs);
-
+    gs = NULL;
     
 
     printf("GameState unloaded successfully.\n");
+
     return NULL;
 }
