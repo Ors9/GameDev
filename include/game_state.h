@@ -49,6 +49,7 @@ typedef enum SubStateExit
 } SubStateExit;
 
 
+typedef struct UserSession UserSession; // Struct of user_session.c
 
 
 GameState *InitGameState(AssetManager *asset, GameCamera * mainCamera);
@@ -64,6 +65,8 @@ void HandleCurrentScreenState(GameState *gs);
 PGconn * getDataBase(GameState *gs);
 AssetManager * getAssetManager(GameState *gs);
 MainGameScreenState GetMainGameState(GameState *gs);
+UserSession *GetUserSession(GameState * gs);
+
 
 
 #endif // GAME_STATE_H

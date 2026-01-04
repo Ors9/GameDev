@@ -48,7 +48,7 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
 {
    
     static AuthUiState ui = {0}; // מאתחל הכל ל-0/false פעם אחת
-
+    ClearBackground(RAYWHITE);
     float btnW = 400;
     float btnH = 60;
     int globalFontSize = 27;
@@ -81,10 +81,11 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
             UpdateLoginState(gameState, SUB_LOGIN_CHOOSE_CHARACTER);
             UpdateGameState(gameState, STATE_LOGIN);
         }
-        else if (ConnectToGame(ui.name, ui.pass, getDataBase(gameState), ui.errorMsg) == true)
+        else if (ConnectToGame(ui.name, ui.pass, getDataBase(gameState), ui.errorMsg , gameState) == true)
         {
             UpdateLoginState(gameState, SUB_LOGIN_CHOOSE_CHARACTER);
             UpdateGameState(gameState, STATE_LOGIN);
+            
         }
     }
     pos.y += btnH + 20;

@@ -4,13 +4,13 @@
 #include <auth/auth.h>
 #include "sodium.h"
 
+bool HashedPassword(const char *password, char hashedPassword[])
+{
 
-
-bool HashedPassword(const char *password, char hashedPassword []){
-
-    int r = crypto_pwhash_str(hashedPassword , password , strlen(password) , crypto_pwhash_OPSLIMIT_INTERACTIVE , crypto_pwhash_MEMLIMIT_INTERACTIVE );
-    if(r == -1 || r != 0){
-        fprintf(stderr , "crypto_pwash_str failed at HashedPassword\n");
+    int r = crypto_pwhash_str(hashedPassword, password, strlen(password), crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE);
+    if (r == -1 || r != 0)
+    {
+        fprintf(stderr, "crypto_pwash_str failed at HashedPassword\n");
         return false;
     }
 
@@ -19,21 +19,26 @@ bool HashedPassword(const char *password, char hashedPassword []){
 
 static bool IsComplexityValid(const char *input)
 {
-    if (input == NULL)
+    if (input == NULL || input[0] == '\0')
         return false;
+
     bool foundChar = false;
     bool foundDigit = false;
 
     for (int i = 0; input[i] != '\0'; i++)
     {
-        if (isalpha(input[i]))
-            foundChar = true;
-        if (isdigit(input[i]))
-            foundDigit = true;
 
-        if (foundChar && foundDigit)
-            return true;
+        if (!isalnum((unsigned char)input[i]))
+        {
+            return false;
+        }
+
+        if (isalpha((unsigned char)input[i]))
+            foundChar = true;
+        if (isdigit((unsigned char)input[i]))
+            foundDigit = true;
     }
+
     return (foundChar && foundDigit);
 }
 
