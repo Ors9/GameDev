@@ -3,15 +3,17 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include <string.h>
+#include <character_session.h>
 
 struct UserSession
 {
     char name[32];
     int uid;
     bool isConnected;
+    CharacterSession *character;
 };
 
-void UpdateUserSession(UserSession *session , const char *name, int userId, bool isConnected)
+void UpdateUserSession(UserSession *session, const char *name, int userId, bool isConnected)
 
 {
 
@@ -22,7 +24,7 @@ void UpdateUserSession(UserSession *session , const char *name, int userId, bool
     session->isConnected = isConnected;
 }
 
-UserSession *InitUserSession(const char *name, int uid, bool isConnected)
+UserSession *InitUserSession(const char *name, int uid, bool isConnected, CharacterSession *character)
 {
     UserSession *session = malloc(sizeof(UserSession));
     if (session == NULL)
@@ -44,11 +46,27 @@ UserSession *InitUserSession(const char *name, int uid, bool isConnected)
     session->uid = uid;
     session->isConnected = isConnected;
 
+    session->character = character;
+
     return session;
 }
 
+CharacterSession * GetCharacterSession(UserSession *session){
+    return session->character;
+}
+
+
+
+
 void UnloadUserSession(UserSession *session)
 {
+
+    if (session->character != NULL)
+    {
+        UnloadCharacterSession(session->character);
+        session->character = NULL;
+    }
+
     if (session != NULL)
     {
         free(session);
@@ -61,5 +79,3 @@ int GetUserIdFromSession(UserSession *session)
 {
     return session->uid;
 }
-
-

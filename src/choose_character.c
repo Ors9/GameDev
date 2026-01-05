@@ -5,15 +5,21 @@
 #include <assets_manager.h>
 #include <ctype.h>
 #include <user_session.h>
+#include <character_session.h>
+#include <choose_character.h>
+#include <stdlib.h>
 
 #define RAYGUI_IMPLEMENTATION
 #define RAYGUI_SUPPORT_ICONS
 #define RAYGUI_TEXTBOX_EXTENDED
 
+typedef struct CharacterSession CharacterSession;
+
 static float DrawLblInput(Vector2 pos, float width, float height, const char *label, char *buffer, int bufferSize, bool *currentEditMode);
 static void DrawCharacters(GameState *gs, CharacterClass selectedClass);
 static bool IsValidName(const char *name, char *errorText);
 static bool AddCharClassToDB(char *name, CharacterClass cls, GameState *gs, char *errorText);
+static void DrawLoginCharacters(GameState *gs, int selectedCharacter);
 
 void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
 {
@@ -21,6 +27,9 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
     float btnW = 400;
     float btnH = 60;
     int globalFontSize = 35;
+    int selectedCharacter = 0;
+
+    DrawLoginCharacters(gs, selectedCharacter);
 
     GuiSetStyle(DEFAULT, TEXT_SIZE, globalFontSize);
 
@@ -31,7 +40,7 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
 
     pos.y += btnH + 25;
 
-    if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "Create character"))
+    if (GuiButton((Rectangle){pos.x, screenHeight - 50 - btnH, btnW, btnH}, "Create character"))
     {
         UpdateLoginState(gs, SUB_LOGIN_CREATE_CHARACTER);
     }
@@ -102,6 +111,9 @@ void CreateCharacterScreen(int screenWidth, int screenHeight, GameState *gs)
 
 static bool AddCharClassToDB(char *name, CharacterClass cls, GameState *gs, char *errorText)
 {
+
+    
+
     PGconn *dataBase = getDataBase(gs);
     if (dataBase == NULL)
     {
@@ -130,7 +142,7 @@ static bool AddCharClassToDB(char *name, CharacterClass cls, GameState *gs, char
 
         snprintf(errorText, 100, "DB Error: %s", PQresultErrorMessage(res));
         printf("DB Error: %s\n", PQresultErrorMessage(res));
-        
+
         PQclear(res);
         return false;
     }
@@ -185,6 +197,80 @@ static bool IsValidName(const char *name, char *errorText)
     }
 
     return foundCharacter;
+}
+
+static void DrawLoginCharacters(GameState *gs, int selectedCharacter)
+{
+
+    GameCamera *mainCamera = GetMainCamera(gs);
+    AssetManager *assets = getAssetManager(gs);
+    MyUpdateCamera(mainCamera, (Vector3){10.0f, 0.0f, 0.0f}, GetFrameTime());
+    Camera3D camera = GetRaylibCamera(mainCamera);
+    CharacterResources *res1 = GetCharacterRescource(assets, MUTANT_CHAR);
+    CharacterResources *res2 = GetCharacterRescource(assets, MONSTER_CHAR);
+    float deltaTime = GetFrameTime();
+
+    int userIdInt = GetUserIdFromSession(GetUserSession(gs));
+    char userIdStr[12];
+    snprintf(userIdStr, sizeof(userIdStr), "%d", userIdInt);
+    char const *sqlPrompt = "select cid , user_id , class_type , cname , level , xp  from UserCharacters where user_id = $1";
+
+    const char *paramValues[1] = {userIdStr};
+
+    PGresult *res = PQexecParams(getDataBase(gs), sqlPrompt, 1, NULL, paramValues, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        printf("DB error DrawLoginCharacters at choose_character.c \n");
+        PQclear(res);
+    
+        return;
+    }
+
+    int rows = PQntuples(res);
+    
+    static CharacterSession *characters = NULL;
+
+    // בדיקה: האם כבר טענו את הדמויות? אם לא - טען פעם אחת.
+    if (characters == NULL)
+    {
+        characters = CreateEmptyCharacterList(rows);
+
+        for (int i = 0; i < rows; i++)
+        {
+            // שליפת הנתונים מה-DB
+            int cid = atoi(PQgetvalue(res, i, 0));
+            char *cname = PQgetvalue(res, i, 3);
+            CharacterClass class_type = (CharacterClass)atoi(PQgetvalue(res, i, 2));
+            int level = atoi(PQgetvalue(res, i, 4));
+            int xp = atoi(PQgetvalue(res, i, 5));
+
+            
+            CharacterSession* current = GetCharacterFromList(characters, i);
+            UpdateCharacterSession(current, cname, cid, class_type, level, xp);
+        }
+    }
+
+    CharacterSession* current = NULL;
+
+    BeginMode3D(camera);
+    int offsetX = 0;
+    for( int i = 0 ; i < rows ; i ++){
+        current = GetCharacterFromList(characters, i);
+        DrawModel(GetModel(GetCharacterRescource(assets, GetCharacterClass(current))), (Vector3){5.0f + offsetX, 0.0f, 0.0f}, 3.0f, WHITE);
+        if(i == selectedCharacter){
+            DrawCircle3D((Vector3){5.0f + offsetX, 0.0f, 0.0f}, 5.0f, (Vector3){5.0f, 0.0f, 0.0f}, 10.0f, RED);
+        }
+
+    
+        //GuiLabel((Rectangle){10 + offsetX, 10, 150, 40}, GetCharacterName(current));
+        //GuiLabel((Rectangle){10 + offsetX, 50, 150, 40}, TextFormat("Level: %d", GetCharacterLevel(current)));
+        offsetX += 10;
+     
+    }
+
+    EndMode3D();
+    PQclear(res);
 }
 
 static void DrawCharacters(GameState *gs, CharacterClass selectedClass)

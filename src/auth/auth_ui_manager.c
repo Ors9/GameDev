@@ -43,10 +43,9 @@ static float DrawLabeledInput(Vector2 pos, float width, float height, const char
     return pos.y + labelHeight + height + 30;
 }
 
-
 void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
 {
-   
+
     static AuthUiState ui = {0}; // מאתחל הכל ל-0/false פעם אחת
     ClearBackground(RAYWHITE);
     float btnW = 400;
@@ -78,14 +77,22 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
     {
         if (strcmp(ui.name, "") == 0 && strcmp(ui.pass, "") == 0)
         {
+           
             UpdateLoginState(gameState, SUB_LOGIN_CHOOSE_CHARACTER);
             UpdateGameState(gameState, STATE_LOGIN);
+            strcpy(ui.name , "adminOr1");
+            strcpy(ui.pass , "adminOr123");
+
+            if (ConnectToGame(ui.name, ui.pass, getDataBase(gameState), ui.errorMsg, gameState) == true)
+            {
+                UpdateLoginState(gameState, SUB_LOGIN_CHOOSE_CHARACTER);
+                UpdateGameState(gameState, STATE_LOGIN);
+            }
         }
-        else if (ConnectToGame(ui.name, ui.pass, getDataBase(gameState), ui.errorMsg , gameState) == true)
+        else if (ConnectToGame(ui.name, ui.pass, getDataBase(gameState), ui.errorMsg, gameState) == true)
         {
             UpdateLoginState(gameState, SUB_LOGIN_CHOOSE_CHARACTER);
             UpdateGameState(gameState, STATE_LOGIN);
-            
         }
     }
     pos.y += btnH + 20;
@@ -99,7 +106,6 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
 
 void RegisterScreen(int screenWidth, int screenHeight, GameState *gameState)
 {
-   
 
     static AuthUiState ui = {0};
     ClearBackground(RAYWHITE);
@@ -132,7 +138,7 @@ void RegisterScreen(int screenWidth, int screenHeight, GameState *gameState)
     if (GuiButton((Rectangle){pos.x, pos.y, btnW, btnH}, "REGISTER NOW"))
     {
         AUTH_STATUS status;
-        if (CheckIfUserExists(ui.name, getDataBase(gameState) , ui.errorMsg) == true)
+        if (CheckIfUserExists(ui.name, getDataBase(gameState), ui.errorMsg) == true)
         {
             status = USER_ALREADY_EXISTS;
         }

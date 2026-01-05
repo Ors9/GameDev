@@ -12,5 +12,6 @@ int main()
         exit(1);
     }
     StartGame();
+    
     return 0;
 }
