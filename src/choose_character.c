@@ -19,33 +19,118 @@ static float DrawLblInput(Vector2 pos, float width, float height, const char *la
 static void DrawCharacters(GameState *gs, CharacterClass selectedClass);
 static bool IsValidName(const char *name, char *errorText);
 static bool AddCharClassToDB(char *name, CharacterClass cls, GameState *gs, char *errorText);
-static void DrawLoginCharacters(GameState *gs, int selectedCharacter);
+static void DrawLoginCharacters(GameState *gs, int selectedCharacter, int characterCount);
+static int LoadUserCharacters(GameState *gs);
+
+// פונקציית עזר לטעינת דמויות מה-DB לתוך ה-GameState
+// עדכון פונקציית הטעינה כדי שתכניס נתונים לתוך ה-Session
+static int LoadUserCharacters(GameState *gs)
+{
+    PGconn *db = getDataBase(gs);
+    UserSession *session = GetUserSession(gs);
+    int userId = GetUserIdFromSession(session);
+
+    char userIdStr[12];
+    snprintf(userIdStr, sizeof(userIdStr), "%d", userId);
+    const char *query = "SELECT cid, user_id, class_type, cname, level, xp FROM UserCharacters WHERE user_id = $1";
+    const char *params[1] = {userIdStr};
+
+    PGresult *res = PQexecParams(db, query, 1, NULL, params, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        PQclear(res);
+        return 0;
+    }
+
+    int rows = PQntuples(res);
+    CharacterSession *list = CreateEmptyCharacterList(rows);
+
+    for (int i = 0; i < rows; i++)
+    {
+        UpdateCharacterSession(
+            GetCharacterFromList(list, i),
+            PQgetvalue(res, i, 3),
+            atoi(PQgetvalue(res, i, 0)),
+            (CharacterClass)atoi(PQgetvalue(res, i, 2)),
+            atoi(PQgetvalue(res, i, 4)),
+            atoi(PQgetvalue(res, i, 5)));
+    }
+
+    // שומרים את כל הרשימה בתוך ה-session
+    SetUserCharacterList(session, list, rows);
+
+    PQclear(res);
+    return rows;
+}
+
 
 void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
 {
     ClearBackground(RAYWHITE);
-    float btnW = 400;
-    float btnH = 60;
-    int globalFontSize = 35;
-    int selectedCharacter = 0;
+    static int selectedCharacter = 0;
+    static bool dataLoaded = false;
 
-    DrawLoginCharacters(gs, selectedCharacter);
+    // 1. משיגים את הסשן
+    UserSession *session = GetUserSession(gs);
 
-    GuiSetStyle(DEFAULT, TEXT_SIZE, globalFontSize);
-
-    Vector2 pos = {(screenWidth / 2.0f) - (btnW / 2.0f), screenHeight / 6.0f};
-
-    // כותרת
-    GuiLabel((Rectangle){pos.x, pos.y, btnW, btnH}, "Choose Player screen");
-
-    pos.y += btnH + 25;
-
-    if (GuiButton((Rectangle){pos.x, screenHeight - 50 - btnH, btnW, btnH}, "Create character"))
+    // 2. טעינה חד-פעמית
+    if (!dataLoaded)
     {
+        LoadUserCharacters(gs);
+        dataLoaded = true;
+    }
+
+    // 3. שליפת נתונים מהסשן לציור
+    CharacterSession *list = GetSessionCharacterList(session);
+    int characterCount = GetSessionCharacterCount(session);
+
+    // ציור המודלים ב-3D
+    DrawLoginCharacters(gs, selectedCharacter, characterCount);
+
+    // 4. כותרת המסך
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 35);
+    GuiLabel((Rectangle){(screenWidth / 2.0f) - 200, 50, 400, 60}, "Choose Your Character");
+
+    // 5. ציור כפתורים דינמי לבחירת דמות
+    for (int i = 0; i < characterCount; i++)
+    {
+        Rectangle btnRec = {100 + (i * 200), screenHeight - 220, 150, 40};
+        CharacterSession *cur = GetCharacterFromList(list, i);
+        
+        if (GuiButton(btnRec, GetCharacterName(cur)))
+        {
+            selectedCharacter = i;
+        }
+
+        if (selectedCharacter == i)
+        {
+            DrawRectangleLinesEx(btnRec, 3, RED);
+        }
+    }
+
+    // --- כאן החזרנו את הלוגיקה והכפתורים שנעלמו ---
+
+    // 6. כפתור START GAME - עם לוגיקת הניקוי
+    if (GuiButton((Rectangle){(screenWidth / 2.0f) - 200, screenHeight - 140, 400, 60}, "START GAME"))
+    {
+        // מבצעים את הבחירה הסופית (העתקת הדמות וניקוי הרשימה)
+        FinalizeCharacterSelection(session, selectedCharacter);
+
+        // הדפסת דיבאג (הכמימוס שביקשת)
+        PrintUserSessionDebug(session);
+
+        // מעבר למשחק עצמו
+        UpdateGameState(gs, STATE_GAMEPLAY);
+    }
+
+    // 7. כפתור CREATE NEW CHARACTER (בתחתית המסך)
+    if (GuiButton((Rectangle){(screenWidth / 2.0f) - 200, screenHeight - 70, 400, 60}, "+ Create New Character"))
+    {
+        dataLoaded = false; // כדי שיטען מחדש כשנחזור
         UpdateLoginState(gs, SUB_LOGIN_CREATE_CHARACTER);
     }
 }
-
 void CreateCharacterScreen(int screenWidth, int screenHeight, GameState *gs)
 {
     ClearBackground(RAYWHITE);
@@ -111,8 +196,6 @@ void CreateCharacterScreen(int screenWidth, int screenHeight, GameState *gs)
 
 static bool AddCharClassToDB(char *name, CharacterClass cls, GameState *gs, char *errorText)
 {
-
-    
 
     PGconn *dataBase = getDataBase(gs);
     if (dataBase == NULL)
@@ -199,78 +282,31 @@ static bool IsValidName(const char *name, char *errorText)
     return foundCharacter;
 }
 
-static void DrawLoginCharacters(GameState *gs, int selectedCharacter)
+static void DrawLoginCharacters(GameState *gs, int selectedCharacter, int characterCount)
 {
-
     GameCamera *mainCamera = GetMainCamera(gs);
     AssetManager *assets = getAssetManager(gs);
     MyUpdateCamera(mainCamera, (Vector3){10.0f, 0.0f, 0.0f}, GetFrameTime());
     Camera3D camera = GetRaylibCamera(mainCamera);
-    CharacterResources *res1 = GetCharacterRescource(assets, MUTANT_CHAR);
-    CharacterResources *res2 = GetCharacterRescource(assets, MONSTER_CHAR);
-    float deltaTime = GetFrameTime();
 
-    int userIdInt = GetUserIdFromSession(GetUserSession(gs));
-    char userIdStr[12];
-    snprintf(userIdStr, sizeof(userIdStr), "%d", userIdInt);
-    char const *sqlPrompt = "select cid , user_id , class_type , cname , level , xp  from UserCharacters where user_id = $1";
-
-    const char *paramValues[1] = {userIdStr};
-
-    PGresult *res = PQexecParams(getDataBase(gs), sqlPrompt, 1, NULL, paramValues, NULL, NULL, 0);
-
-    if (PQresultStatus(res) != PGRES_TUPLES_OK)
-    {
-        printf("DB error DrawLoginCharacters at choose_character.c \n");
-        PQclear(res);
-    
-        return;
-    }
-
-    int rows = PQntuples(res);
-    
-    static CharacterSession *characters = NULL;
-
-    // בדיקה: האם כבר טענו את הדמויות? אם לא - טען פעם אחת.
-    if (characters == NULL)
-    {
-        characters = CreateEmptyCharacterList(rows);
-
-        for (int i = 0; i < rows; i++)
-        {
-            // שליפת הנתונים מה-DB
-            int cid = atoi(PQgetvalue(res, i, 0));
-            char *cname = PQgetvalue(res, i, 3);
-            CharacterClass class_type = (CharacterClass)atoi(PQgetvalue(res, i, 2));
-            int level = atoi(PQgetvalue(res, i, 4));
-            int xp = atoi(PQgetvalue(res, i, 5));
-
-            
-            CharacterSession* current = GetCharacterFromList(characters, i);
-            UpdateCharacterSession(current, cname, cid, class_type, level, xp);
-        }
-    }
-
-    CharacterSession* current = NULL;
+    CharacterSession *list = GetSessionCharacterList(GetUserSession(gs));
 
     BeginMode3D(camera);
-    int offsetX = 0;
-    for( int i = 0 ; i < rows ; i ++){
-        current = GetCharacterFromList(characters, i);
-        DrawModel(GetModel(GetCharacterRescource(assets, GetCharacterClass(current))), (Vector3){5.0f + offsetX, 0.0f, 0.0f}, 3.0f, WHITE);
-        if(i == selectedCharacter){
-            DrawCircle3D((Vector3){5.0f + offsetX, 0.0f, 0.0f}, 5.0f, (Vector3){5.0f, 0.0f, 0.0f}, 10.0f, RED);
+    for (int i = 0; i < characterCount; i++)
+    {
+        CharacterSession *current = GetCharacterFromList(list, i);
+        Vector3 pos = {5.0f + (i * 10.0f), 0.0f, 0.0f};
+
+        // ציור המודל
+        DrawModel(GetModel(GetCharacterRescource(assets, GetCharacterClass(current))), pos, 3.0f, WHITE);
+
+        // ציור סימון בחירה מתחת לדמות
+        if (i == selectedCharacter)
+        {
+            DrawCircle3D(pos, 5.0f, (Vector3){1, 0, 0}, 90.0f, RED);
         }
-
-    
-        //GuiLabel((Rectangle){10 + offsetX, 10, 150, 40}, GetCharacterName(current));
-        //GuiLabel((Rectangle){10 + offsetX, 50, 150, 40}, TextFormat("Level: %d", GetCharacterLevel(current)));
-        offsetX += 10;
-     
     }
-
     EndMode3D();
-    PQclear(res);
 }
 
 static void DrawCharacters(GameState *gs, CharacterClass selectedClass)

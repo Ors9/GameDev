@@ -8,6 +8,7 @@ struct CharacterSession
 {
     int cid;
     char cname[32];
+    //Add Player player!!!!!!!!!!!!!!
     CharacterClass class_type;
     int level;
     int xp;
@@ -88,4 +89,34 @@ char *GetCharacterName(CharacterSession *session)
 int GetCharacterLevel(CharacterSession *session)
 {
     return session->level;
+}
+
+// תוסיף את זה ל-src/character_session.c
+CharacterSession* CloneCharacterSession(CharacterSession* source) {
+    if (source == NULL) return NULL;
+    
+    // יוצר רשימה חדשה של איבר אחד
+    CharacterSession* newNode = CreateEmptyCharacterList(1); 
+    
+    // מעתיק את כל הנתונים מהמקור
+    UpdateCharacterSession(
+        newNode, 
+        GetCharacterName(source), 
+        GetCharacterId(source), 
+        GetCharacterClass(source), 
+        GetCharacterLevel(source), 
+        GetCharacterXP(source)
+    );
+    
+    return newNode;
+}
+
+int GetCharacterId(CharacterSession *session) {
+    if (session == NULL) return -1;
+    return session->cid; // וודא שזה השם של השדה אצלך ב-struct (כנראה cid לפי ה-SQL)
+}
+
+int GetCharacterXP(CharacterSession *session) {
+    if (session == NULL) return 0;
+    return session->xp; // וודא שזה השם של השדה אצלך
 }

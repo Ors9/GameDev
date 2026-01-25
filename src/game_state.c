@@ -40,7 +40,7 @@ GameState *InitGameState(AssetManager *asset, GameCamera *mainCamera)
     gs->exit_sub_state = SUB_EXIT_NONE;
     gs->dataBase = ConnectToDatabase();
 
-    gs->session = InitUserSession("", -1, false , NULL);
+    gs->session = InitUserSession("", -1, false);
 
     return gs;
 }
