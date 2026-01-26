@@ -6,8 +6,10 @@
 
 typedef struct CharacterSession CharacterSession;
 typedef struct AssetManager AssetManager;
+typedef struct Player Player;
 
 void UnloadCharacterSession(CharacterSession *session);
+Player* GetPlayer(CharacterSession *cs);
 CharacterSession* CloneCharacterSession(CharacterSession* source);
 void UpdateCharacterSession(CharacterSession *session, char *cname, int cid, CharacterClass class_type, int level, int xp);
 CharacterSession *InitCharacterSession(int cid,char *cname , CharacterClass class_type, int level, int xp);

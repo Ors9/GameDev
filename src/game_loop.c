@@ -26,8 +26,8 @@ void StartGame()
     AssetManager *assets = InitAssetManager();
 
     // אתחול ישויות
-    Player *player = InitPlayer(MUTANT_CHAR, assets); // MUTANT_CHAR MONSTER_CHAR
-    Enemy *enemy = InitEnemy();
+    //Player *player = InitPlayer(MUTANT_CHAR, assets); // MUTANT_CHAR MONSTER_CHAR
+    //Enemy *enemy = InitEnemy();
 
     GameCamera *gCam = InitGameCamera();
     GameState *gameState = InitGameState(assets, gCam);
@@ -40,9 +40,9 @@ void StartGame()
         HandleCurrentScreenState(gameState);
 
         // --- 1. Update (לוגיקה) ---
-        UpdateEnemy(enemy, player, deltaTime);
-        UpdatePlayer(player, deltaTime, gameState);
-        UpdateGameCamera(gCam, player, deltaTime);
+       // UpdateEnemy(enemy, player, deltaTime);
+        //UpdatePlayer(player, deltaTime, gameState);
+        //UpdateGameCamera(gCam, player, deltaTime);
 
         // --- 2. Draw (ציור) ---
         BeginDrawing();
@@ -50,8 +50,8 @@ void StartGame()
 
         BeginMode3D(GetRaylibCamera(gCam));
         DrawGrid(1000, 2.0f);
-        DrawPlayer(player);
-        DrawEnemy(enemy); // TESTTTTTTT
+        //DrawPlayer(player);
+        //DrawEnemy(enemy); // TESTTTTTTT
 
         // DrawModel(testModel, (Vector3)GetPlayerPosition(player), 10.0f, WHITE); // TESTTTTTTT
 
@@ -66,7 +66,7 @@ void StartGame()
     }
 
     // שחרור זיכרון מסודר
-    UnloadGamePointers(player, enemy, gCam, gameState, assets);
+    //UnloadGamePointers(player, enemy, gCam, gameState, assets);
 
     CloseWindow();
 }

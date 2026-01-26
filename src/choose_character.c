@@ -122,6 +122,8 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
 
         // מעבר למשחק עצמו
         UpdateGameState(gs, STATE_GAMEPLAY);
+        UpdateGameplayState(gs,SUB_GAMEPLAY_PLAYING);
+        UpdateLoginState(gs, SUB_LOGIN_NONE);
     }
 
     // 7. כפתור CREATE NEW CHARACTER (בתחתית המסך)

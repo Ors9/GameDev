@@ -20,6 +20,7 @@ int GetSessionCharacterCount(UserSession *session);
 
 void PrintUserSessionDebug(UserSession *session);
 
+
 CharacterSession *GetCharacterSession(UserSession *session);
 
 #endif // USER_SESSION_H

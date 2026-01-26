@@ -15,6 +15,33 @@ struct CharacterSession
     int xp;
 };
 
+Player* GetPlayer(CharacterSession *cs){
+    return cs->player;
+}
+
+void PrintCharacterSession(CharacterSession *session)
+{
+    if (session == NULL)
+    {
+        printf("[CharacterSession] Error: Attempted to print a NULL session.\n");
+        return;
+    }
+
+    printf("--- Character Session Info ---\n");
+    printf("ID:      %d\n", session->cid);
+    printf("Name:    %s\n", session->cname);
+    printf("Class:   %d\n", (int)session->class_type); // Cast to int for safety
+    printf("Level:   %d\n", session->level);
+    printf("XP:      %d\n", session->xp);
+    
+    if (session->player != NULL) {
+        printf("Status:  Active (Player object initialized)\n");
+    } else {
+        printf("Status:  Inactive (No Player object)\n");
+    }
+    printf("------------------------------\n");
+}
+
 CharacterSession *InitCharacterSession(int cid, char *cname, CharacterClass class_type, int level, int xp)
 {
     CharacterSession *session = malloc(sizeof(CharacterSession));
@@ -72,6 +99,8 @@ CharacterSession *CreateEmptyCharacterList(int size)
 void InitCharacterPlayer(CharacterSession *session, AssetManager *assets)
 {
     session->player = InitPlayer(session->class_type, assets);
+    PrintCharacterSession(session);
+    
 }
 
 CharacterSession *GetCharacterFromList(CharacterSession *list, int index)
@@ -81,10 +110,7 @@ CharacterSession *GetCharacterFromList(CharacterSession *list, int index)
 
 void UnloadCharacterSession(CharacterSession *session)
 {
-    if (session->player != NULL)
-    {
-        UnloadPlayer(session->player);
-    }
+
 
     if (session != NULL)
     {

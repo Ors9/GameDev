@@ -8,6 +8,8 @@
 #include <camera_manager.h>
 #include <user_session.h>
 
+
+static void HandleStateGameplay(GameState *gs);
 static void HandleStateLogin(GameState *gs);
 
 struct GameState
@@ -75,13 +77,32 @@ void UpdateExitState(GameState *gs, SubStateExit newState)
     gs->exit_sub_state = newState;
 }
 
-UserSession *GetUserSession(GameState * gs){
+UserSession *GetUserSession(GameState *gs)
+{
     return gs->session;
 }
 
 AssetManager *getAssetManager(GameState *gs)
 {
     return gs->assets;
+}
+
+static void HandleStateGameplay(GameState *gs)
+{
+    SubStateGameplay gamplayState = gs->gameplay_sub_state;
+    
+    switch (gamplayState)
+    {
+    case SUB_GAMEPLAY_NONE:
+        break;
+    case SUB_GAMEPLAY_PAUSED:
+        break;
+    case SUB_GAMEPLAY_PLAYING:
+        //Playing game function..
+        break;
+    case SUB_GAMEPLAY_WAITING:
+        break;
+    }
 }
 
 static void HandleStateLogin(GameState *gs)
@@ -115,8 +136,6 @@ PGconn *getDataBase(GameState *gs)
     return gs->dataBase;
 }
 
-
-
 void HandleCurrentScreenState(GameState *gs)
 {
     MainGameScreenState mainState = gs->main_game_screen_state;
@@ -126,6 +145,7 @@ void HandleCurrentScreenState(GameState *gs)
         HandleStateLogin(gs);
         break;
     case STATE_GAMEPLAY:
+        HandleStateGameplay(gs);
         // To do Start game
         break;
     case STATE_EXIT:
