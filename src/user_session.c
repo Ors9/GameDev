@@ -132,7 +132,7 @@ void SetUserCharacterList(UserSession *session, CharacterSession *list, int coun
 }
 
 // 2. בחירת דמות וניקוי המיותרים
-void FinalizeCharacterSelection(UserSession *session, int selectedIndex) 
+void FinalizeCharacterSelection(UserSession *session, int selectedIndex , AssetManager *assets) 
 {
     if (session == NULL || session->characterList == NULL) return;
     if (selectedIndex < 0 || selectedIndex >= session->characterCount) return;
@@ -143,6 +143,9 @@ void FinalizeCharacterSelection(UserSession *session, int selectedIndex)
     // לוגיקת הניקוי: 
     // אנחנו יוצרים עותק נפרד ויחיד של הדמות כדי שנוכל למחוק את הרשימה כולה
     session->activeCharacter = CloneCharacterSession(chosenFromList);
+
+    //
+    InitCharacterPlayer(session->activeCharacter ,assets);
 
     // עכשיו אפשר למחוק את כל הרשימה הזמנית שנטענה מה-DB
     UnloadCharacterSession(session->characterList);

@@ -10,7 +10,6 @@ typedef struct CharacterSession CharacterSession;
 UserSession *InitUserSession(const char *name, int uid, bool isConnected);
 
 void SetUserCharacterList(UserSession *session, CharacterSession *list, int count);
-void FinalizeCharacterSelection(UserSession *session, int selectedIndex);
 
 
 void UnloadUserSession(UserSession *session);

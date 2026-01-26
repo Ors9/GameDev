@@ -3,18 +3,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <characters.h>
 
 struct CharacterSession
 {
     int cid;
     char cname[32];
-    //Add Player player!!!!!!!!!!!!!!
+    Player *player;
     CharacterClass class_type;
     int level;
     int xp;
 };
 
-CharacterSession *InitCharacterSession(int cid,char *cname , CharacterClass class_type, int level, int xp)
+CharacterSession *InitCharacterSession(int cid, char *cname, CharacterClass class_type, int level, int xp)
 {
     CharacterSession *session = malloc(sizeof(CharacterSession));
     if (session == NULL)
@@ -28,6 +29,7 @@ CharacterSession *InitCharacterSession(int cid,char *cname , CharacterClass clas
     session->xp = xp;
     strncpy(session->cname, cname, sizeof(session->cname) - 1);
     session->cname[sizeof(session->cname) - 1] = '\0';
+    session->player = NULL;
     return session;
 }
 
@@ -67,12 +69,23 @@ CharacterSession *CreateEmptyCharacterList(int size)
     return chars;
 }
 
-CharacterSession* GetCharacterFromList(CharacterSession* list, int index) {
-    return &list[index]; 
+void InitCharacterPlayer(CharacterSession *session, AssetManager *assets)
+{
+    session->player = InitPlayer(session->class_type, assets);
+}
+
+CharacterSession *GetCharacterFromList(CharacterSession *list, int index)
+{
+    return &list[index];
 }
 
 void UnloadCharacterSession(CharacterSession *session)
 {
+    if (session->player != NULL)
+    {
+        UnloadPlayer(session->player);
+    }
+
     if (session != NULL)
     {
         free(session);
@@ -92,31 +105,36 @@ int GetCharacterLevel(CharacterSession *session)
 }
 
 // תוסיף את זה ל-src/character_session.c
-CharacterSession* CloneCharacterSession(CharacterSession* source) {
-    if (source == NULL) return NULL;
-    
+CharacterSession *CloneCharacterSession(CharacterSession *source)
+{
+    if (source == NULL)
+        return NULL;
+
     // יוצר רשימה חדשה של איבר אחד
-    CharacterSession* newNode = CreateEmptyCharacterList(1); 
-    
+    CharacterSession *newNode = CreateEmptyCharacterList(1);
+
     // מעתיק את כל הנתונים מהמקור
     UpdateCharacterSession(
-        newNode, 
-        GetCharacterName(source), 
-        GetCharacterId(source), 
-        GetCharacterClass(source), 
-        GetCharacterLevel(source), 
-        GetCharacterXP(source)
-    );
-    
+        newNode,
+        GetCharacterName(source),
+        GetCharacterId(source),
+        GetCharacterClass(source),
+        GetCharacterLevel(source),
+        GetCharacterXP(source));
+
     return newNode;
 }
 
-int GetCharacterId(CharacterSession *session) {
-    if (session == NULL) return -1;
+int GetCharacterId(CharacterSession *session)
+{
+    if (session == NULL)
+        return -1;
     return session->cid; // וודא שזה השם של השדה אצלך ב-struct (כנראה cid לפי ה-SQL)
 }
 
-int GetCharacterXP(CharacterSession *session) {
-    if (session == NULL) return 0;
+int GetCharacterXP(CharacterSession *session)
+{
+    if (session == NULL)
+        return 0;
     return session->xp; // וודא שזה השם של השדה אצלך
 }

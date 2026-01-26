@@ -115,7 +115,7 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
     if (GuiButton((Rectangle){(screenWidth / 2.0f) - 200, screenHeight - 140, 400, 60}, "START GAME"))
     {
         // מבצעים את הבחירה הסופית (העתקת הדמות וניקוי הרשימה)
-        FinalizeCharacterSelection(session, selectedCharacter);
+        FinalizeCharacterSelection(session, selectedCharacter , getAssetManager(gs));
 
         // הדפסת דיבאג (הכמימוס שביקשת)
         PrintUserSessionDebug(session);
