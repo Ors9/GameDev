@@ -37,7 +37,7 @@ void StartGame()
     while (!WindowShouldClose())
     {
         float deltaTime = GetFrameTime();
-        HandleCurrentScreenState(gameState);
+        //HandleCurrentScreenState(gameState);
 
         // --- 1. Update (לוגיקה) ---
        // UpdateEnemy(enemy, player, deltaTime);
@@ -55,7 +55,7 @@ void StartGame()
 
         // DrawModel(testModel, (Vector3)GetPlayerPosition(player), 10.0f, WHITE); // TESTTTTTTT
 
-        HandleCurrentScreenState(gameState);
+        //HandleCurrentScreenState(gameState);
 
         EndMode3D();
 

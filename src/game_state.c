@@ -7,10 +7,11 @@
 #include <assets_manager.h>
 #include <camera_manager.h>
 #include <user_session.h>
-
+#include "character_session.h"
 
 static void HandleStateGameplay(GameState *gs);
 static void HandleStateLogin(GameState *gs);
+static void GamePlay(GameState *gs);
 
 struct GameState
 {
@@ -90,7 +91,7 @@ AssetManager *getAssetManager(GameState *gs)
 static void HandleStateGameplay(GameState *gs)
 {
     SubStateGameplay gamplayState = gs->gameplay_sub_state;
-    
+
     switch (gamplayState)
     {
     case SUB_GAMEPLAY_NONE:
@@ -98,11 +99,35 @@ static void HandleStateGameplay(GameState *gs)
     case SUB_GAMEPLAY_PAUSED:
         break;
     case SUB_GAMEPLAY_PLAYING:
-        //Playing game function..
+        GamePlay(gs);
+        // Playing game function..
         break;
     case SUB_GAMEPLAY_WAITING:
         break;
     }
+}
+static void GamePlay(GameState *gs)
+{
+
+    UserSession *us = gs->session;
+    CharacterSession *cs = GetCharacterSession(us);
+    GameCamera *gCam = GetMainCamera(gs);
+    Player *p = GetPlayer(cs);
+    float deltaTime = GetFrameTime();
+
+    UpdatePlayer(p, deltaTime, gs);
+    UpdateGameCamera(gCam, p, deltaTime);
+
+    ClearBackground(RAYWHITE);
+
+    BeginMode3D(GetRaylibCamera(gCam));
+    DrawGrid(1000, 2.0f);
+
+    DrawPlayer(p);
+
+    EndMode3D();
+ 
+
 }
 
 static void HandleStateLogin(GameState *gs)
