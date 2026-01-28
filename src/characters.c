@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assets_manager.h>
 #include <game_state.h>
+#include "raymath.h"
 
 static bool CheckMovementInput();
 static PlayerAnimationState DeterminePlayerAnimationState(Player *player);
@@ -179,12 +180,13 @@ static void UpdatePlayerAnimation(Player *player, float deltaTime)
     UpdateModelAnimation(GetModel(player->assets), currentAnim[0], (int)player->animTime);
 }
 
-void UpdatePlayer(Player *player, float deltaTime , GameState *gs)
+void UpdatePlayer(Player *player, float deltaTime, GameState *gs)
 {
     // 1. בדיקה האם השחקן נעול באנימציית "פעולה"
     bool isLocked = AnimationController(player);
-    
-    if(GetMainGameState(gs) != STATE_GAMEPLAY){
+
+    if (GetMainGameState(gs) != STATE_GAMEPLAY)
+    {
         return;
     }
 
@@ -320,31 +322,31 @@ bool MovingPlayer(Player *player, float deltaTime)
     Vector3 direction = (Vector3){0, 0, 0};
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP))
     {
-        direction.z = -1;
+        direction.z -= 1.0f;
     }
     if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN))
     {
-        direction.z = 1;
+        direction.z += 1.0f;
     }
 
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
     {
-        direction.x = -1;
+        direction.x -= 1.0f;
     }
 
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
     {
-        direction.x = 1;
+        direction.x += 1.0f;
     }
 
-    Vector3 length;
-    Vector3 moveVec;
-    if (direction.x != 0 || direction.z != 0)
+    float lengthSq = direction.x * direction.x + direction.z * direction.z;
+    if (lengthSq > 0)
     {
+        direction = Vector3Normalize(direction);
         CalculateRotation(player, direction);
-        moveVec = Vector3Normalize(direction);
-        length = Vector3Scale(moveVec, deltaTime * player->stats->speed);
-        player->position = Vector3Add(player->position, length);
+        float currentSpeed = player->stats->speed;
+        Vector3 moveVec = Vector3Scale(direction, currentSpeed * deltaTime);
+        player->position = Vector3Add(player->position, moveVec);
 
         return true;
     }
@@ -376,7 +378,6 @@ void UnloadPlayer(Player *player)
         free(player->stats);
         player->stats = NULL; // ניקוי המצביע לאחר השחרור
     }
-    
 
     free(player);
     player = NULL;
