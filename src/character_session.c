@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <characters.h>
+#include "game_state.h"
 
 struct CharacterSession
 {
@@ -15,7 +16,75 @@ struct CharacterSession
     int xp;
 };
 
-Player* GetPlayer(CharacterSession *cs){
+void DrawEntityLabel(GameState *gs)
+{
+    GameCamera *gCam = GetMainCamera(gs);
+    Camera3D raylibCam = GetRaylibCamera(gCam);
+
+    UserSession *session = GetUserSession(gs);
+    CharacterSession *cs = GetCharacterSession(session);
+    Player *player = GetPlayer(cs);
+    Vector3 position = GetPlayerPosition(player);
+    CharacterStats *charStats = GetCharacterStats(player);
+    int health = GetCurrentHealth(player);
+    int maxHealth = GetMaxHealth(player);
+
+    // 1. חישוב מיקום מעל הראש (גובה 2.5 יחידות - תשנה לפי המודל שלך)
+    Vector3 topPos = {position.x, position.y + 5.0f, position.z};
+
+    // 2. המרה לדו-מימד
+    Vector2 screenPos = GetWorldToScreen(topPos, raylibCam);
+
+    // בדיקה בסיסית: אם screenPos היא (0,0), ייתכן והאובייקט מחוץ לפריים או מאחורי המצלמה
+    if (screenPos.x <= 0 || screenPos.y <= 0)
+        return;
+
+    // --- עיצוב הטקסט ---
+    int fontSize = 20;
+    const char *labelText = TextFormat("%s [Lv %d]", cs->cname, cs->level);
+    int textWidth = MeasureText(labelText, fontSize);
+
+    // ציור טקסט (מרכוז לפי הרוחב)
+    DrawText(labelText, screenPos.x - (textWidth / 2), screenPos.y - 40, fontSize, BLACK);
+
+    // --- עיצוב בר החיים (Health Bar) ---
+    float barWidth = 80.0f;
+    float barHeight = 8.0f;
+    float healthPercent = (float)health / maxHealth;
+
+    // מיקום הבר מתחת לטקסט
+    float barX = screenPos.x - (barWidth / 2);
+    float barY = screenPos.y - 15;
+
+    // רקע אדום (מה שחסר)
+    DrawRectangle(barX, barY, barWidth, barHeight, MAROON);
+    // בר ירוק (מה שיש)
+    DrawRectangle(barX, barY, barWidth * healthPercent, barHeight, LIME);
+    // מסגרת שחורה דקה
+    DrawRectangleLinesEx((Rectangle){barX, barY, barWidth, barHeight}, 1, BLACK);
+    int screenWidth = GetScreenWidth();
+
+
+    int screenHeight = GetScreenHeight();
+
+
+
+    // חישוב המיקום: גובה המסך פחות עובי הבר
+    int yPosition = screenHeight - barHeight;
+
+    // ציור רקע לבר (כדי שיראו כמה חסר - למשל בצבע אפור כהה)
+    DrawRectangle(0, yPosition, screenWidth, barHeight, DARKGRAY);
+
+    // חישוב רוחב ה-EXP לפי התקדמות (למשל 60% מהרמה)
+    float expPercentage = cs->xp / 100; // כאן תכניס את החישוב שלך (current_exp / max_exp)
+    int expWidth = (int)(screenWidth * expPercentage);
+
+    // ציור ה-EXP עצמו (למשל בצבע סגול או תכלת)
+    DrawRectangle(0, yPosition, expWidth, barHeight, PURPLE);
+}
+
+Player *GetPlayer(CharacterSession *cs)
+{
     return cs->player;
 }
 
@@ -33,10 +102,13 @@ void PrintCharacterSession(CharacterSession *session)
     printf("Class:   %d\n", (int)session->class_type); // Cast to int for safety
     printf("Level:   %d\n", session->level);
     printf("XP:      %d\n", session->xp);
-    
-    if (session->player != NULL) {
+
+    if (session->player != NULL)
+    {
         printf("Status:  Active (Player object initialized)\n");
-    } else {
+    }
+    else
+    {
         printf("Status:  Inactive (No Player object)\n");
     }
     printf("------------------------------\n");
@@ -100,7 +172,6 @@ void InitCharacterPlayer(CharacterSession *session, AssetManager *assets)
 {
     session->player = InitPlayer(session->class_type, assets);
     PrintCharacterSession(session);
-    
 }
 
 CharacterSession *GetCharacterFromList(CharacterSession *list, int index)
@@ -110,7 +181,6 @@ CharacterSession *GetCharacterFromList(CharacterSession *list, int index)
 
 void UnloadCharacterSession(CharacterSession *session)
 {
-
 
     if (session != NULL)
     {

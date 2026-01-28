@@ -7,6 +7,7 @@
 typedef struct CharacterSession CharacterSession;
 typedef struct AssetManager AssetManager;
 typedef struct Player Player;
+typedef struct GameState GameState;
 
 void UnloadCharacterSession(CharacterSession *session);
 Player* GetPlayer(CharacterSession *cs);
@@ -22,4 +23,5 @@ int GetCharacterId(CharacterSession *session);
 void InitCharacterPlayer(CharacterSession * session , AssetManager *assets);
 void FinalizeCharacterSelection(UserSession *session, int selectedIndex , AssetManager *assets);
 int GetCharacterXP(CharacterSession *session);
+void DrawEntityLabel(GameState *gs);
 #endif // CHARACTERS_H

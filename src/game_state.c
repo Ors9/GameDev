@@ -126,6 +126,8 @@ static void GamePlay(GameState *gs)
     DrawPlayer(p);
 
     EndMode3D();
+
+    DrawEntityLabel(gs);
  
 
 }

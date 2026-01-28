@@ -21,6 +21,8 @@ struct UserSession
     CharacterSession *activeCharacter; // הדמות שנבחרה למשחק
 };
 
+
+
 void PrintUserSessionDebug(UserSession *session) {
     if (session == NULL) {
         printf("DEBUG: UserSession is NULL\n");

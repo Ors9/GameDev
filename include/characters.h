@@ -21,5 +21,8 @@ void UpdatePlayer(Player *player, float deltaTime , GameState *gs);
 bool AnimationController(Player *player);
 Vector3 GetPlayerPosition(Player *player);
 void UnloadPlayer(Player * player);
+int GetCurrentHealth(Player * p);
+CharacterStats * GetCharacterStats(Player * p);
+int GetMaxHealth(Player *p);
 
 #endif // PLAYER_H

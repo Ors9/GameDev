@@ -35,6 +35,12 @@ struct Player
     BoundingBox bounds;
 };
 
+
+
+int GetMaxHealth(Player *p){
+    return p->stats->health;
+}
+
 Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
 {
     Player *player = malloc(sizeof(Player));
@@ -66,6 +72,17 @@ Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
 
     return player;
 }
+
+
+int GetCurrentHealth(Player * p){
+    return p->currentHealth;
+}
+
+
+CharacterStats * GetCharacterStats(Player * p){
+    return p->stats;
+}
+
 
 static PlayerAnimationState DeterminePlayerAnimationState(Player *player)
 {
