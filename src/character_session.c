@@ -23,6 +23,12 @@ void DrawEntityLabel(GameState *gs)
 
     UserSession *session = GetUserSession(gs);
     CharacterSession *cs = GetCharacterSession(session);
+
+    if (cs == NULL || cs->player == NULL)
+    {
+        return;
+    }
+
     Player *player = GetPlayer(cs);
     Vector3 position = GetPlayerPosition(player);
     CharacterStats *charStats = GetCharacterStats(player);
@@ -161,6 +167,7 @@ CharacterSession *CreateEmptyCharacterList(int size)
         chars[i].level = 0;
         chars[i].xp = 0;
         chars[i].cname[0] = '\0';
+        chars[i].player = NULL;
     }
     return chars;
 }
@@ -180,12 +187,18 @@ void UnloadCharacterSession(CharacterSession *session)
 {
     if (session != NULL)
     {
+        if (session->player != NULL)
+        {
+            UnloadPlayer(session->player);
+            session->player = NULL;
+        }
 
         // 2. שחרור ה-Session עצמו
         free(session);
         printf("CharacterSession and associated Player memory cleared successfully.\n");
     }
 }
+
 char *GetCharacterName(CharacterSession *session)
 {
     return session->cname;
@@ -196,23 +209,19 @@ int GetCharacterLevel(CharacterSession *session)
     return session->level;
 }
 
-// תוסיף את זה ל-src/character_session.c
+
 CharacterSession *CloneCharacterSession(CharacterSession *source)
 {
     if (source == NULL)
         return NULL;
 
-    // יוצר רשימה חדשה של איבר אחד
-    CharacterSession *newNode = CreateEmptyCharacterList(1);
-
-    // מעתיק את כל הנתונים מהמקור
-    UpdateCharacterSession(
-        newNode,
-        GetCharacterName(source),
-        GetCharacterId(source),
-        GetCharacterClass(source),
-        GetCharacterLevel(source),
-        GetCharacterXP(source));
+    // שימוש בפונקציית ה-Init המקורית שמאפסת הכל נכון
+    CharacterSession *newNode = InitCharacterSession(
+        source->cid,
+        source->cname,
+        source->class_type,
+        source->level,
+        source->xp);
 
     return newNode;
 }
