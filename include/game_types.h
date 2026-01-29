@@ -1,9 +1,15 @@
 #ifndef GAME_TYPES_H
 #define GAME_TYPES_H
 
+typedef enum EnivormentResourcesTypes
+{
+    ENIV_WORD_TERRIAN,
 
+    ENIVORMENT_COUNT
+} EnivormentResourcesTypes;
 
-typedef enum PlayerAnimationState {
+typedef enum PlayerAnimationState
+{
     PLAYER_IDLE,
     PLAYER_WALK,
     PLAYER_RUN,
@@ -17,11 +23,11 @@ typedef enum PlayerAnimationState {
     ANIM_COUNT
 } PlayerAnimationState;
 
-typedef enum CharacterClass {
+typedef enum CharacterClass
+{
     MUTANT_CHAR,
     MONSTER_CHAR,
     CLASS_COUNT
 } CharacterClass;
-
 
 #endif

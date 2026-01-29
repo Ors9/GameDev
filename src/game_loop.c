@@ -7,10 +7,9 @@
 #include "auth/db_auth_manager.h"
 #include <assets_manager.h>
 
-static void UnloadGamePointers(Player *player, Enemy *enemy, GameCamera *gCam, GameState *gameState, AssetManager *assets)
+static void UnloadGamePointers( GameCamera *gCam, GameState *gameState, AssetManager *assets)
 {
-    UnloadPlayer(player);
-    UnloadEnemy(enemy);
+
     UnloadGameCamera(gCam);
     UnloadGameState(gameState);  
     UnloadAssetsManager(assets); 
@@ -36,26 +35,14 @@ void StartGame()
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
-        float deltaTime = GetFrameTime();
-        //HandleCurrentScreenState(gameState);
-
-        // --- 1. Update (לוגיקה) ---
-       // UpdateEnemy(enemy, player, deltaTime);
-        //UpdatePlayer(player, deltaTime, gameState);
-        //UpdateGameCamera(gCam, player, deltaTime);
-
+ 
         // --- 2. Draw (ציור) ---
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
         BeginMode3D(GetRaylibCamera(gCam));
-        DrawGrid(1000, 2.0f);
-        //DrawPlayer(player);
-        //DrawEnemy(enemy); // TESTTTTTTT
+      
 
-        // DrawModel(testModel, (Vector3)GetPlayerPosition(player), 10.0f, WHITE); // TESTTTTTTT
-
-        //HandleCurrentScreenState(gameState);
 
         EndMode3D();
 
@@ -66,7 +53,7 @@ void StartGame()
     }
 
     // שחרור זיכרון מסודר
-    //UnloadGamePointers(player, enemy, gCam, gameState, assets);
+    UnloadGamePointers(gCam, gameState, assets);
 
     CloseWindow();
 }

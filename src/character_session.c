@@ -64,10 +64,7 @@ void DrawEntityLabel(GameState *gs)
     DrawRectangleLinesEx((Rectangle){barX, barY, barWidth, barHeight}, 1, BLACK);
     int screenWidth = GetScreenWidth();
 
-
     int screenHeight = GetScreenHeight();
-
-
 
     // חישוב המיקום: גובה המסך פחות עובי הבר
     int yPosition = screenHeight - barHeight;
@@ -181,15 +178,14 @@ CharacterSession *GetCharacterFromList(CharacterSession *list, int index)
 
 void UnloadCharacterSession(CharacterSession *session)
 {
-
     if (session != NULL)
     {
+
+        // 2. שחרור ה-Session עצמו
         free(session);
-        session = NULL;
-        printf("CharacterSession memory cleared successfully.\n");
+        printf("CharacterSession and associated Player memory cleared successfully.\n");
     }
 }
-
 char *GetCharacterName(CharacterSession *session)
 {
     return session->cname;

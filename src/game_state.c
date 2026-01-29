@@ -121,15 +121,27 @@ static void GamePlay(GameState *gs)
     ClearBackground(RAYWHITE);
 
     BeginMode3D(GetRaylibCamera(gCam));
-    DrawGrid(1000, 2.0f);
+ 
 
     DrawPlayer(p);
 
     EndMode3D();
 
     DrawEntityLabel(gs);
- 
+    AssetManager *assets = getAssetManager(gs);
+    DrawFloor(assets);
 
+    
+}
+
+void DrawFloor(AssetManager *asset)
+{
+
+    if (IsEnvResourceReady(asset, ENIV_WORD_TERRIAN))
+    {
+        Model terrain = GetEnvModelByType(asset, ENIV_WORD_TERRIAN);
+        DrawModel(terrain, (Vector3){0, 0, 0}, 1.0f, WHITE);
+    }
 }
 
 static void HandleStateLogin(GameState *gs)

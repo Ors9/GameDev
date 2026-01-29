@@ -5,6 +5,9 @@
 #include "stdio.h"
 
 static const char *GetFullAnimPath(CharacterClass cls, PlayerAnimationState state);
+static const char *GetFullEnivPath(EnivormentResourcesTypes state);
+static void InitCharacterResources(AssetManager *assets);
+static void InitEnvironmentResources(AssetManager *assets);
 
 struct CharacterResources
 {
@@ -14,10 +17,20 @@ struct CharacterResources
     bool isLoaded;
 };
 
+struct EnvironmentResources
+{
+    Model model; // המודל של השטח הסלעי או הדשא
+    BoundingBox bounds;
+    bool isLoaded;
+};
+
 struct AssetManager
 {
-    CharacterResources classResources[CLASS_COUNT]; // מחסן מרכזי
+    EnvironmentResources worldRes[ENIVORMENT_COUNT]; // המשאבים של הסביבה
+    CharacterResources classResources[CLASS_COUNT];  // שחקנים
 };
+
+
 
 AssetManager *InitAssetManager()
 {
@@ -30,13 +43,74 @@ AssetManager *InitAssetManager()
     }
 
     InitCharacterResources(assets);
+    InitEnvironmentResources(assets);
 
     return assets;
+}
+
+static void InitEnvironmentResources(AssetManager *assets)
+{
+    for (int i = 0; i < ENIVORMENT_COUNT; i++)
+    {
+        // 1. קבלת הנתיב לפי ה-ID של המשאב
+        const char *modelPath = GetFullEnivPath((EnivormentResourcesTypes)i);
+
+        if (modelPath != NULL)
+        {
+            // 2. טעינה ישירות לתוך המבנה של ה-AssetManager
+            assets->worldRes[i].model = LoadModel(modelPath);
+
+            if (assets->worldRes[i].model.meshCount > 0)
+            {
+                assets->worldRes[i].isLoaded = true;
+                printf("Successfully loaded environment model: %s\n", modelPath);
+            }
+            else
+            {
+                assets->worldRes[i].isLoaded = false;
+                printf("Failed to load environment model: %s\n", modelPath);
+            }
+        }
+    }
+}
+
+Model GetEnvModelByType(AssetManager *assets, EnivormentResourcesTypes type) {
+    if (assets == NULL || !assets->worldRes[type].isLoaded) return (Model){ 0 };
+    return assets->worldRes[type].model;
+}
+
+BoundingBox GetEnvBoundsByType(AssetManager *assets, EnivormentResourcesTypes type) {
+    if (assets == NULL) return (BoundingBox){ 0 };
+    return assets->worldRes[type].bounds;
+}
+
+bool IsEnvResourceReady(AssetManager *assets, EnivormentResourcesTypes type) {
+    return (assets != NULL && assets->worldRes[type].isLoaded);
+}
+
+static const char *GetFullEnivPath(EnivormentResourcesTypes state)
+{
+    char *basePath = "assets/model/Enivorment/";
+    switch (state)
+    {
+    case ENIV_WORD_TERRIAN:
+
+        return TextFormat("%s%s", basePath, "rocky_terrain_02_4k.gltf");
+    default:
+    {
+        return NULL;
+    }
+    }
+    return NULL;
 }
 
 CharacterResources *GetCharacterRescource(AssetManager *asset, CharacterClass selected_class)
 {
     return &asset->classResources[selected_class];
+}
+
+EnvironmentResources * GetEnivormentResources(AssetManager * asset){
+    return asset->worldRes;
 }
 
 static const char *GetFullAnimPath(CharacterClass cls, PlayerAnimationState state)
@@ -85,7 +159,7 @@ static const char *GetFullAnimPath(CharacterClass cls, PlayerAnimationState stat
     return NULL;
 }
 
-void InitCharacterResources(AssetManager *assets)
+static void InitCharacterResources(AssetManager *assets)
 {
     for (int i = 0; i < CLASS_COUNT; i++)
     {
@@ -131,7 +205,7 @@ void UnloadAssetsManager(AssetManager *assets)
     {
         // 1. שחרור המודל מהכרטיס הגרפי
         UnloadModel(assets->classResources[i].model);
-        
+
         // 2. שחרור כל מערכי האנימציות שנטענו
         for (int j = 0; j < ANIM_COUNT; j++)
         {
@@ -140,12 +214,21 @@ void UnloadAssetsManager(AssetManager *assets)
                 // Raylib דורשת את המצביע ואת הכמות ששמרנו
                 UnloadModelAnimations(assets->classResources[i].animations[j], assets->classResources[i].animCounts[j]);
                 assets->classResources[i].animations[j] = NULL;
-      
             }
         }
         assets->classResources[i].isLoaded = false;
     }
 
+    for (int i = 0; i < ENIVORMENT_COUNT; i++)
+    {
+        if (assets->worldRes[i].isLoaded)
+        {
+            // שחרור המודל (כולל ה-Meshes וה-Materials שלו)
+            UnloadModel(assets->worldRes[i].model);
+
+             assets->worldRes[i].isLoaded = false;
+        }
+    }
     free(assets);
     assets = NULL;
     printf("Assets memory cleared successfully.\n");
