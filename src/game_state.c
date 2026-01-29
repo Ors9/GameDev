@@ -8,6 +8,7 @@
 #include <camera_manager.h>
 #include <user_session.h>
 #include "character_session.h"
+#include "rlgl.h"
 
 static void HandleStateGameplay(GameState *gs);
 static void HandleStateLogin(GameState *gs);
@@ -106,9 +107,9 @@ static void HandleStateGameplay(GameState *gs)
         break;
     }
 }
+
 static void GamePlay(GameState *gs)
 {
-
     UserSession *us = gs->session;
     CharacterSession *cs = GetCharacterSession(us);
     GameCamera *gCam = GetMainCamera(gs);
@@ -118,29 +119,63 @@ static void GamePlay(GameState *gs)
     UpdatePlayer(p, deltaTime, gs);
     UpdateGameCamera(gCam, p, deltaTime);
 
-    ClearBackground(RAYWHITE);
+    // 1. צובעים את השמיים לפני הכל (מחוץ ל-3D)
+    ClearBackground((Color){135, 206, 235, 255});
 
     BeginMode3D(GetRaylibCamera(gCam));
- 
 
+    // 2. מציירים את השמש (כדור זהב רחוק)
+    // אם אתה לא רואה אותה - תרים את המצלמה למעלה!
+    DrawSphere((Vector3){0, 20, 10}, 15.0f, GOLD);
+
+    // 3. מציירים את העולם
+    AssetManager *assets = getAssetManager(gs);
+    DrawFloor(assets);
+    DrawGrid(200, 10.0f);
     DrawPlayer(p);
 
     EndMode3D();
 
     DrawEntityLabel(gs);
-    AssetManager *assets = getAssetManager(gs);
-    DrawFloor(assets);
+}
 
-    
+void DrawWorldAxes(float length)
+{
+    // ציר X - אדום
+    DrawLine3D((Vector3){0, 0, 0}, (Vector3){length, 0, 0}, RED);
+    DrawCylinderEx((Vector3){length, 0, 0}, (Vector3){length + 2.0f, 0, 0}, 0.5f, 0.0f, 10, RED);
+
+    // ציר Y - ירוק (למעלה)
+    DrawLine3D((Vector3){0, 0, 0}, (Vector3){0, length, 0}, GREEN);
+    DrawCylinderEx((Vector3){0, length, 0}, (Vector3){0, length + 2.0f, 0}, 0.5f, 0.0f, 10, GREEN);
+
+    // ציר Z - כחול
+    DrawLine3D((Vector3){0, 0, 0}, (Vector3){0, 0, length}, BLUE);
+    DrawCylinderEx((Vector3){0, 0, length}, (Vector3){0, 0, length + 2.0f}, 0.5f, 0.0f, 10, BLUE);
 }
 
 void DrawFloor(AssetManager *asset)
 {
-
     if (IsEnvResourceReady(asset, ENIV_WORD_TERRIAN))
     {
         Model terrain = GetEnvModelByType(asset, ENIV_WORD_TERRIAN);
-        DrawModel(terrain, (Vector3){0, 0, 0}, 1.0f, WHITE);
+
+        // 1. ציור חצים ענקיים (באורך 50 יחידות) כדי לדעת איפה אנחנו
+        DrawWorldAxes(50.0f);
+
+        // 3. הגנה מפני מודלים "חד-צדדיים"
+        rlDisableBackfaceCulling();
+
+        // 4. ציור המודל ב-Wires ירוקים (כדי לראות את המבנה גם בלי אור)
+        DrawModelWires(terrain, (Vector3){0, 0, 0}, 5.0f, LIME);
+
+        // 5. ציור המודל הרגיל
+        DrawModel(terrain, (Vector3){0, 0, 0}, 5.0f, WHITE);
+
+        rlEnableBackfaceCulling();
+
+        // 6. קוביית ביטחון ב-0,0,0
+        DrawCubeWires((Vector3){0, 0, 0}, 10.0f, 10.0f, 10.0f, MAROON);
     }
 }
 

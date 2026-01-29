@@ -59,11 +59,12 @@ static void InitEnvironmentResources(AssetManager *assets)
         {
             // 2. טעינה ישירות לתוך המבנה של ה-AssetManager
             assets->worldRes[i].model = LoadModel(modelPath);
-
+            
             if (assets->worldRes[i].model.meshCount > 0)
             {
                 assets->worldRes[i].isLoaded = true;
                 printf("Successfully loaded environment model: %s\n", modelPath);
+                assets->worldRes[i].bounds = GetModelBoundingBox(assets->worldRes[i].model);   
             }
             else
             {
@@ -94,7 +95,7 @@ static const char *GetFullEnivPath(EnivormentResourcesTypes state)
     switch (state)
     {
     case ENIV_WORD_TERRIAN:
-
+        //return TextFormat("%s%s", basePath, "rocky_terrain_02_4k.gltf");
         return TextFormat("%s%s", basePath, "rocky_terrain_02_4k.gltf");
     default:
     {

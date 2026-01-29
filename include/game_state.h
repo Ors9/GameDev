@@ -55,7 +55,8 @@ typedef struct UserSession UserSession; // Struct of user_session.c
 GameState *InitGameState(AssetManager *asset, GameCamera * mainCamera);
 GameState * UnloadGameState(GameState * gs);
 SubStateLogin   getLoginState(GameState *gs);
-void DrawFloor(AssetManager * asset);
+
+void DrawFloor(AssetManager *asset);
 
 GameCamera *GetMainCamera(GameState *gs);
 void UpdateGameState(GameState *gs , MainGameScreenState newState);

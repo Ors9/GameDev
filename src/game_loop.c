@@ -7,12 +7,12 @@
 #include "auth/db_auth_manager.h"
 #include <assets_manager.h>
 
-static void UnloadGamePointers( GameCamera *gCam, GameState *gameState, AssetManager *assets)
+static void UnloadGamePointers(GameCamera *gCam, GameState *gameState, AssetManager *assets)
 {
 
     UnloadGameCamera(gCam);
-    UnloadGameState(gameState);  
-    UnloadAssetsManager(assets); 
+    UnloadGameState(gameState);
+    UnloadAssetsManager(assets);
     printf("Done memory clearing.\n");
 }
 
@@ -25,8 +25,8 @@ void StartGame()
     AssetManager *assets = InitAssetManager();
 
     // אתחול ישויות
-    //Player *player = InitPlayer(MUTANT_CHAR, assets); // MUTANT_CHAR MONSTER_CHAR
-    //Enemy *enemy = InitEnemy();
+    // Player *player = InitPlayer(MUTANT_CHAR, assets); // MUTANT_CHAR MONSTER_CHAR
+    // Enemy *enemy = InitEnemy();
 
     GameCamera *gCam = InitGameCamera();
     GameState *gameState = InitGameState(assets, gCam);
@@ -35,16 +35,9 @@ void StartGame()
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
- 
-        // --- 2. Draw (ציור) ---
         BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        BeginMode3D(GetRaylibCamera(gCam));
-      
-
-
-        EndMode3D();
+        // מחקנו את ה-ClearBackground מכאן!
+        // כל מסך (Login או Gameplay) יחליט על הצבע שלו בעצמו.
 
         HandleCurrentScreenState(gameState);
 
