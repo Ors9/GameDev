@@ -124,10 +124,6 @@ static void GamePlay(GameState *gs)
 
     BeginMode3D(GetRaylibCamera(gCam));
 
-    // 2. מציירים את השמש (כדור זהב רחוק)
-    // אם אתה לא רואה אותה - תרים את המצלמה למעלה!
-    DrawSphere((Vector3){0, 20, 10}, 15.0f, GOLD);
-
     // 3. מציירים את העולם
     AssetManager *assets = getAssetManager(gs);
     DrawFloor(assets);
@@ -161,21 +157,16 @@ void DrawFloor(AssetManager *asset)
         Model terrain = GetEnvModelByType(asset, ENIV_WORD_TERRIAN);
 
         // 1. ציור חצים ענקיים (באורך 50 יחידות) כדי לדעת איפה אנחנו
-        DrawWorldAxes(50.0f);
+        DrawWorldAxes(500.0f);
 
         // 3. הגנה מפני מודלים "חד-צדדיים"
         rlDisableBackfaceCulling();
 
-        // 4. ציור המודל ב-Wires ירוקים (כדי לראות את המבנה גם בלי אור)
-        DrawModelWires(terrain, (Vector3){0, 0, 0}, 5.0f, LIME);
-
         // 5. ציור המודל הרגיל
-        DrawModel(terrain, (Vector3){0, 0, 0}, 5.0f, WHITE);
+
+        DrawModel(terrain, (Vector3){0, 220, 0}, 5.0f, WHITE);
 
         rlEnableBackfaceCulling();
-
-        // 6. קוביית ביטחון ב-0,0,0
-        DrawCubeWires((Vector3){0, 0, 0}, 10.0f, 10.0f, 10.0f, MAROON);
     }
 }
 
