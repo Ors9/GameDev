@@ -8,7 +8,7 @@
 #include <camera_manager.h>
 #include <user_session.h>
 #include "character_session.h"
-#include "rlgl.h"
+
 #include "word/map_manager.h"
 
 static void HandleStateGameplay(GameState *gs);
@@ -25,7 +25,7 @@ struct GameState
     SubStateExit exit_sub_state;
     GameCamera *mainCamera;
     PGconn *dataBase;
-    GameMap * currMap;
+    GameMap *currMap;
 };
 
 GameState *InitGameState(AssetManager *asset, GameCamera *mainCamera)
@@ -45,7 +45,7 @@ GameState *InitGameState(AssetManager *asset, GameCamera *mainCamera)
     gs->gameplay_sub_state = SUB_GAMEPLAY_NONE;
     gs->exit_sub_state = SUB_EXIT_NONE;
     gs->dataBase = ConnectToDatabase();
-    gs->currMap = MAP_NONE;
+    gs->currMap = NULL;
     gs->session = InitUserSession("", -1, false);
 
     return gs;
@@ -116,46 +116,23 @@ static void GamePlay(GameState *gs)
     CharacterSession *cs = GetCharacterSession(us);
     GameCamera *gCam = GetMainCamera(gs);
     Player *p = GetPlayer(cs);
+    GameMap * map = GetMap(gs);
     float deltaTime = GetFrameTime();
 
     UpdatePlayer(p, deltaTime, gs);
     UpdateGameCamera(gCam, p, deltaTime);
 
     // 1. צובעים את השמיים לפני הכל (מחוץ ל-3D)
-    ClearBackground((Color){135, 206, 235, 255});
+    ClearBackground(WHITE);
 
     BeginMode3D(GetRaylibCamera(gCam));
 
     // 3. מציירים את העולם
     AssetManager *assets = getAssetManager(gs);
     DrawGrid(200, 10.0f);
-    DrawFloor(assets);
+    DrawMap(map , assets);
 
     DrawPlayer(p);
-
-    // בתוך ה-BeginMode3D
-    if (IsEnvResourceReady(assets, ENIV_WORD_TERRIAN))
-    {
-        Model terrain = GetEnvModelByType(assets, ENIV_WORD_TERRIAN);
-        Vector3 pos = GetPlayerPosition(p);
-        // נשלח קרן מהשחקן למטה
-        Ray ray = {pos, (Vector3){0, -1, 0}};
-        // חשוב: להשתמש באותה מטריצה (Scale 5, Pos 220) כמו בציור!
-        Matrix transform = MatrixMultiply(MatrixScale(5, 5, 5), MatrixTranslate(0, 220, 0));
-        RayCollision hit = GetRayCollisionMesh(ray, terrain.meshes[0], transform);
-
-        if (hit.hit)
-        {
-            // אם מצאנו רצפה - נצייר שם כדור קטן בצבע בולט
-            DrawSphere(hit.point, 0.5f, RED);
-            pos.y = hit.point.y; // "נדביק" את השחקן
-        }
-        else
-        {
-            // אם לא מצאנו רצפה - נצייר קו אדום בשמיים כאות אזהרה
-            DrawLine3D(pos, (Vector3){pos.x, pos.y + 10, pos.z}, RED);
-        }
-    }
 
     EndMode3D();
 
@@ -177,32 +154,14 @@ void DrawWorldAxes(float length)
     DrawCylinderEx((Vector3){0, 0, length}, (Vector3){0, 0, length + 2.0f}, 0.5f, 0.0f, 10, BLUE);
 }
 
-GameMap * GetMap(GameState * gs){
+GameMap *GetMap(GameState *gs)
+{
     return gs->currMap;
 }
 
-void SetNewMap(GameState * gs , GameMap * map){
-    gs->currMap = map;
-}
-
-void DrawFloor(AssetManager *asset)
+void SetNewMap(GameState *gs, GameMap *map)
 {
-    if (IsEnvResourceReady(asset, ENIV_WORD_TERRIAN))
-    {
-        Model terrain = GetEnvModelByType(asset, ENIV_WORD_TERRIAN);
-
-        // 1. ציור חצים ענקיים (באורך 50 יחידות) כדי לדעת איפה אנחנו
-        DrawWorldAxes(500.0f);
-
-        // 3. הגנה מפני מודלים "חד-צדדיים"
-        rlDisableBackfaceCulling();
-
-        // 5. ציור המודל הרגיל
-
-        DrawModel(terrain, (Vector3){0, 220, 0}, 5.0f, WHITE);
-
-        rlEnableBackfaceCulling();
-    }
+    gs->currMap = map;
 }
 
 // פונקציה שמחזירה את הגובה המדויק של הקרקע מתחת לשחקן
@@ -289,6 +248,11 @@ GameState *UnloadGameState(GameState *gs)
     if (gs == NULL)
     {
         return NULL;
+    }
+
+    if(gs->currMap != NULL){
+        UnloadGameMap(gs->currMap);
+        gs->currMap = NULL;
     }
 
     // 1. סגירת מסד הנתונים

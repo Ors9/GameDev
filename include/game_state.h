@@ -57,7 +57,7 @@ GameState *InitGameState(AssetManager *asset, GameCamera * mainCamera);
 GameState * UnloadGameState(GameState * gs);
 SubStateLogin   getLoginState(GameState *gs);
 
-void DrawFloor(AssetManager *asset);
+
 
 GameCamera *GetMainCamera(GameState *gs);
 void UpdateGameState(GameState *gs , MainGameScreenState newState);

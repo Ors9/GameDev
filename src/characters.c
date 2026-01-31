@@ -5,13 +5,14 @@
 #include "assets/assets_manager.h"
 #include <game_state.h>
 #include "raymath.h"
+#include "word/map_manager.h"
 
 static bool CheckMovementInput();
 static PlayerAnimationState DeterminePlayerAnimationState(Player *player);
 static bool IsActionAnimation(PlayerAnimationState state);
 static void UpdatePlayerLogicBaseOnState(Player *player);
 static void CalculateRotation(Player *player, Vector3 direction);
-static void UpdateY(GameState * gs , Player * player);
+static void UpdateY(GameState *gs, Player *player);
 
 typedef struct CharacterStats
 {
@@ -224,21 +225,30 @@ void UpdatePlayer(Player *player, float deltaTime, GameState *gs)
 
     // 5. תנועה פיזית (הפונקציה כבר בודקת בתוכה אם אפשר לזוז)
     MovingPlayer(player, deltaTime);
-    UpdateY(gs , player);
+    UpdateY(gs, player);
 
     // 6. עדכון פריימים של אנימציה
     UpdatePlayerAnimation(player, deltaTime);
 }
 
-static void UpdateY(GameState * gs , Player * player)
+static void UpdateY(GameState *gs, Player *player)
 {
     AssetManager *asset = getAssetManager(gs);
-    if (IsEnvResourceReady(asset, ENIV_WORD_TERRIAN))
+    GameMap *map = GetMap(gs); // שולפים את המפה הנוכחית מה-gs
+
+    if (map != NULL)
     {
-        Model terrain = GetEnvModelByType(asset, ENIV_WORD_TERRIAN);
-        Vector3 terrainPos = {0, 220, 0};
-        float groundHeight = GetTerrainHeight(terrain, player->position, terrainPos, 5.0f);
+        // הפונקציה הזו כבר עוברת על כל האובייקטים במפה (סלעים, דשא, רצפה)
+        // ומחזירה את הנקודה הכי גבוהה מתחת לרגליים של השחקן
+        float groundHeight = GetMapHeightAt(map, asset, player->position);
+
+        // עדכון הגובה של השחקן
         player->position.y = groundHeight;
+    }
+    else
+    {
+        // אם אין מפה (MAP_NONE), אולי נקבע גובה ברירת מחדל כדי שלא ייפול לאינסוף
+        player->position.y = 220.0f;
     }
 }
 

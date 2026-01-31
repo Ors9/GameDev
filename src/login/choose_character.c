@@ -8,6 +8,7 @@
 #include <character_session.h>
 #include <login/choose_character.h>
 #include <stdlib.h>
+#include "word/map_manager.h"
 
 #define RAYGUI_IMPLEMENTATION
 #define RAYGUI_SUPPORT_ICONS
@@ -64,7 +65,6 @@ static int LoadUserCharacters(GameState *gs)
     return rows;
 }
 
-
 void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
 {
     ClearBackground(RAYWHITE);
@@ -97,7 +97,7 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
     {
         Rectangle btnRec = {100 + (i * 200), screenHeight - 220, 150, 40};
         CharacterSession *cur = GetCharacterFromList(list, i);
-        
+
         if (GuiButton(btnRec, GetCharacterName(cur)))
         {
             selectedCharacter = i;
@@ -115,15 +115,18 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
     if (GuiButton((Rectangle){(screenWidth / 2.0f) - 200, screenHeight - 140, 400, 60}, "START GAME"))
     {
         // מבצעים את הבחירה הסופית (העתקת הדמות וניקוי הרשימה)
-        FinalizeCharacterSelection(session, selectedCharacter , getAssetManager(gs));
+        FinalizeCharacterSelection(session, selectedCharacter, getAssetManager(gs));
 
         // הדפסת דיבאג (הכמימוס שביקשת)
         PrintUserSessionDebug(session);
 
         // מעבר למשחק עצמו
         UpdateGameState(gs, STATE_GAMEPLAY);
-        UpdateGameplayState(gs,SUB_GAMEPLAY_PLAYING);
+        UpdateGameplayState(gs, SUB_GAMEPLAY_PLAYING);
         UpdateLoginState(gs, SUB_LOGIN_NONE);
+        GameMap *newMap = InitGameMap(MAP_TUTORIAL);
+        SetNewMap(gs, newMap);
+        PrintMapInfo(newMap);
     }
 
     // 7. כפתור CREATE NEW CHARACTER (בתחתית המסך)
