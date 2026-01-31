@@ -3,7 +3,7 @@
 #include "stdlib.h"
 #include "auth/auth_ui_manager.h"
 #include "auth/db_auth_manager.h"
-#include "choose_character.h"
+#include "login/choose_character.h"
 #include <assets_manager.h>
 #include <camera_manager.h>
 #include <user_session.h>
@@ -126,9 +126,34 @@ static void GamePlay(GameState *gs)
 
     // 3. מציירים את העולם
     AssetManager *assets = getAssetManager(gs);
-    DrawFloor(assets);
     DrawGrid(200, 10.0f);
+    DrawFloor(assets);
+
     DrawPlayer(p);
+
+    // בתוך ה-BeginMode3D
+    if (IsEnvResourceReady(assets, ENIV_WORD_TERRIAN))
+    {
+        Model terrain = GetEnvModelByType(assets, ENIV_WORD_TERRIAN);
+        Vector3 pos = GetPlayerPosition(p);
+        // נשלח קרן מהשחקן למטה
+        Ray ray = {pos, (Vector3){0, -1, 0}};
+        // חשוב: להשתמש באותה מטריצה (Scale 5, Pos 220) כמו בציור!
+        Matrix transform = MatrixMultiply(MatrixScale(5, 5, 5), MatrixTranslate(0, 220, 0));
+        RayCollision hit = GetRayCollisionMesh(ray, terrain.meshes[0], transform);
+
+        if (hit.hit)
+        {
+            // אם מצאנו רצפה - נצייר שם כדור קטן בצבע בולט
+            DrawSphere(hit.point, 0.5f, RED);
+            pos.y = hit.point.y; // "נדביק" את השחקן
+        }
+        else
+        {
+            // אם לא מצאנו רצפה - נצייר קו אדום בשמיים כאות אזהרה
+            DrawLine3D(pos, (Vector3){pos.x, pos.y + 10, pos.z}, RED);
+        }
+    }
 
     EndMode3D();
 
@@ -168,6 +193,31 @@ void DrawFloor(AssetManager *asset)
 
         rlEnableBackfaceCulling();
     }
+}
+
+// פונקציה שמחזירה את הגובה המדויק של הקרקע מתחת לשחקן
+float GetTerrainHeight(Model terrain, Vector3 playerPos, Vector3 terrainOffset, float terrainScale)
+{
+    // 1. יצירת קרן שמתחילה גבוה מעל השחקן ויורה למטה
+    Ray ray = {0};
+    ray.position = (Vector3){playerPos.x, playerPos.y + 50.0f, playerPos.z};
+    ray.direction = (Vector3){0.0f, -1.0f, 0.0f}; // כיוון למטה
+
+    // 2. יצירת מטריצה שמייצגת את המיקום והגודל של המודל בעולם
+    // זה חשוב כי ציינת שהזזת אותו ל-220 והגדלת ב-5.0
+    Matrix transform = MatrixMultiply(
+        MatrixScale(terrainScale, terrainScale, terrainScale),
+        MatrixTranslate(terrainOffset.x, terrainOffset.y, terrainOffset.z));
+
+    // 3. בדיקת התנגשות בין הקרן לבין ה-Mesh של המודל
+    RayCollision hit = GetRayCollisionMesh(ray, terrain.meshes[0], transform);
+
+    if (hit.hit)
+    {
+        return hit.point.y; // זה הגובה המדויק של הסלע בנקודה הזו
+    }
+
+    return terrainOffset.y; // ברירת מחדל אם אין פגיעה
 }
 
 static void HandleStateLogin(GameState *gs)

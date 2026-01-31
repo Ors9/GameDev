@@ -30,8 +30,6 @@ struct AssetManager
     CharacterResources classResources[CLASS_COUNT];  // שחקנים
 };
 
-
-
 AssetManager *InitAssetManager()
 {
 
@@ -59,12 +57,12 @@ static void InitEnvironmentResources(AssetManager *assets)
         {
             // 2. טעינה ישירות לתוך המבנה של ה-AssetManager
             assets->worldRes[i].model = LoadModel(modelPath);
-            
+
             if (assets->worldRes[i].model.meshCount > 0)
             {
                 assets->worldRes[i].isLoaded = true;
                 printf("Successfully loaded environment model: %s\n", modelPath);
-                assets->worldRes[i].bounds = GetModelBoundingBox(assets->worldRes[i].model);   
+                assets->worldRes[i].bounds = GetModelBoundingBox(assets->worldRes[i].model);
             }
             else
             {
@@ -75,34 +73,41 @@ static void InitEnvironmentResources(AssetManager *assets)
     }
 }
 
-Model GetEnvModelByType(AssetManager *assets, EnivormentResourcesTypes type) {
-    if (assets == NULL || !assets->worldRes[type].isLoaded) return (Model){ 0 };
+Model GetEnvModelByType(AssetManager *assets, EnivormentResourcesTypes type)
+{
+    if (assets == NULL || !assets->worldRes[type].isLoaded)
+        return (Model){0};
     return assets->worldRes[type].model;
 }
 
-BoundingBox GetEnvBoundsByType(AssetManager *assets, EnivormentResourcesTypes type) {
-    if (assets == NULL) return (BoundingBox){ 0 };
+BoundingBox GetEnvBoundsByType(AssetManager *assets, EnivormentResourcesTypes type)
+{
+    if (assets == NULL)
+        return (BoundingBox){0};
     return assets->worldRes[type].bounds;
 }
 
-bool IsEnvResourceReady(AssetManager *assets, EnivormentResourcesTypes type) {
+bool IsEnvResourceReady(AssetManager *assets, EnivormentResourcesTypes type)
+{
     return (assets != NULL && assets->worldRes[type].isLoaded);
 }
 
-static const char *GetFullEnivPath(EnivormentResourcesTypes state)
+static const char *GetFullEnivPath(EnivormentResourcesTypes type)
 {
     char *basePath = "assets/model/Enivorment/";
-    switch (state)
+    switch (type)
     {
     case ENIV_WORD_TERRIAN:
-        //return TextFormat("%s%s", basePath, "rocky_terrain_02_4k.gltf");
         return TextFormat("%s%s", basePath, "rocky_terrain_02_4k.gltf");
+    case ENIV_FLOOR_BLOCK:
+        return TextFormat("%s%s", basePath, "stone_floor_1x1.glb");
+    case ENIV_ROCK_A:
+        return TextFormat("%s%s", basePath, "rock_sharp.glb");
+    case ENIV_TREE_PINE:
+        return TextFormat("%s%s", basePath, "tree_pine.glb");
     default:
-    {
         return NULL;
     }
-    }
-    return NULL;
 }
 
 CharacterResources *GetCharacterRescource(AssetManager *asset, CharacterClass selected_class)
@@ -110,7 +115,8 @@ CharacterResources *GetCharacterRescource(AssetManager *asset, CharacterClass se
     return &asset->classResources[selected_class];
 }
 
-EnvironmentResources * GetEnivormentResources(AssetManager * asset){
+EnvironmentResources *GetEnivormentResources(AssetManager *asset)
+{
     return asset->worldRes;
 }
 
@@ -227,7 +233,7 @@ void UnloadAssetsManager(AssetManager *assets)
             // שחרור המודל (כולל ה-Meshes וה-Materials שלו)
             UnloadModel(assets->worldRes[i].model);
 
-             assets->worldRes[i].isLoaded = false;
+            assets->worldRes[i].isLoaded = false;
         }
     }
     free(assets);

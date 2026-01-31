@@ -1,11 +1,13 @@
 #ifndef GAME_TYPES_H
 #define GAME_TYPES_H
 
-typedef enum EnivormentResourcesTypes
-{
-    ENIV_WORD_TERRIAN,
-
-    ENIVORMENT_COUNT
+typedef enum {
+    ENIV_WORD_TERRIAN, // הרצפה העגולה הישנה (אם תרצה להשאיר)
+    ENIV_FLOOR_BLOCK,  // המרצפת המרובעת (הבסיס לדרגוניקה)
+    ENIV_ROCK_A,       // סלע סוג 1
+    ENIV_TREE_PINE,    // עץ אורן
+    ENIV_GRASS_DECO,   // קישוט דשא
+    ENIVORMENT_COUNT   // תמיד נשאר אחרון - הוא קובע את גודל המערך
 } EnivormentResourcesTypes;
 
 typedef enum PlayerAnimationState

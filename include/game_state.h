@@ -68,7 +68,7 @@ PGconn * getDataBase(GameState *gs);
 AssetManager * getAssetManager(GameState *gs);
 MainGameScreenState GetMainGameState(GameState *gs);
 UserSession *GetUserSession(GameState * gs);
-
+float GetTerrainHeight(Model terrain, Vector3 playerPos, Vector3 terrainOffset, float terrainScale);
 
 
 

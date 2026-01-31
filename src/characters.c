@@ -11,6 +11,7 @@ static PlayerAnimationState DeterminePlayerAnimationState(Player *player);
 static bool IsActionAnimation(PlayerAnimationState state);
 static void UpdatePlayerLogicBaseOnState(Player *player);
 static void CalculateRotation(Player *player, Vector3 direction);
+static void UpdateY(GameState * gs , Player * player);
 
 typedef struct CharacterStats
 {
@@ -35,9 +36,8 @@ struct Player
     BoundingBox bounds;
 };
 
-
-
-int GetMaxHealth(Player *p){
+int GetMaxHealth(Player *p)
+{
     return p->stats->health;
 }
 
@@ -73,16 +73,15 @@ Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
     return player;
 }
 
-
-int GetCurrentHealth(Player * p){
+int GetCurrentHealth(Player *p)
+{
     return p->currentHealth;
 }
 
-
-CharacterStats * GetCharacterStats(Player * p){
+CharacterStats *GetCharacterStats(Player *p)
+{
     return p->stats;
 }
-
 
 static PlayerAnimationState DeterminePlayerAnimationState(Player *player)
 {
@@ -225,9 +224,22 @@ void UpdatePlayer(Player *player, float deltaTime, GameState *gs)
 
     // 5. תנועה פיזית (הפונקציה כבר בודקת בתוכה אם אפשר לזוז)
     MovingPlayer(player, deltaTime);
+    UpdateY(gs , player);
 
     // 6. עדכון פריימים של אנימציה
     UpdatePlayerAnimation(player, deltaTime);
+}
+
+static void UpdateY(GameState * gs , Player * player)
+{
+    AssetManager *asset = getAssetManager(gs);
+    if (IsEnvResourceReady(asset, ENIV_WORD_TERRIAN))
+    {
+        Model terrain = GetEnvModelByType(asset, ENIV_WORD_TERRIAN);
+        Vector3 terrainPos = {0, 220, 0};
+        float groundHeight = GetTerrainHeight(terrain, player->position, terrainPos, 5.0f);
+        player->position.y = groundHeight;
+    }
 }
 
 static void UpdatePlayerLogicBaseOnState(Player *player)

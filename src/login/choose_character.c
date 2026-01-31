@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <user_session.h>
 #include <character_session.h>
-#include <choose_character.h>
+#include <login/choose_character.h>
 #include <stdlib.h>
 
 #define RAYGUI_IMPLEMENTATION
