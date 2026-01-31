@@ -116,10 +116,11 @@ static void GamePlay(GameState *gs)
     CharacterSession *cs = GetCharacterSession(us);
     GameCamera *gCam = GetMainCamera(gs);
     Player *p = GetPlayer(cs);
-    GameMap * map = GetMap(gs);
+    GameMap *map = GetMap(gs);
     float deltaTime = GetFrameTime();
-
+    static int x;
     UpdatePlayer(p, deltaTime, gs);
+
     UpdateGameCamera(gCam, p, deltaTime);
 
     // 1. צובעים את השמיים לפני הכל (מחוץ ל-3D)
@@ -130,7 +131,7 @@ static void GamePlay(GameState *gs)
     // 3. מציירים את העולם
     AssetManager *assets = getAssetManager(gs);
     DrawGrid(200, 10.0f);
-    DrawMap(map , assets);
+    DrawMap(map, assets);
 
     DrawPlayer(p);
 
@@ -250,7 +251,8 @@ GameState *UnloadGameState(GameState *gs)
         return NULL;
     }
 
-    if(gs->currMap != NULL){
+    if (gs->currMap != NULL)
+    {
         UnloadGameMap(gs->currMap);
         gs->currMap = NULL;
     }

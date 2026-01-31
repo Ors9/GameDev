@@ -99,8 +99,9 @@ static const char *GetFullEnivPath(EnivormentResourcesTypes type)
     {
     case ENIV_WORD_TERRIAN:
         return TextFormat("%s%s", basePath, "rocky_terrain_02_4k.gltf");
+
     case ENIV_FLOOR_BLOCK:
-        return TextFormat("%s%s", basePath, "stone_floor_1x1.glb");
+        return TextFormat("%s%s", basePath, "floor_material/scene.gltf");
     case ENIV_ROCK_A:
         return TextFormat("%s%s", basePath, "rock_sharp.glb");
     case ENIV_TREE_PINE:

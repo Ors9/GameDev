@@ -69,8 +69,8 @@ Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
     player->stats->health = 100;
     player->stats->defense = 5;
     player->currentHealth = 100;
-    player->position = (Vector3){100, 1, 100}; // שמנו ב-Y=1 כדי שיעמוד על הרשת
-
+    player->position = (Vector3){100.0f, 225.0f, 100.0f}; // שמנו ב-Y=1 כדי שיעמוד על הרשת
+    player->stats->speed = 0.0f;
     return player;
 }
 
@@ -234,21 +234,20 @@ void UpdatePlayer(Player *player, float deltaTime, GameState *gs)
 static void UpdateY(GameState *gs, Player *player)
 {
     AssetManager *asset = getAssetManager(gs);
-    GameMap *map = GetMap(gs); // שולפים את המפה הנוכחית מה-gs
+    GameMap *map = GetMap(gs);
+    float deltaTime = GetFrameTime();
 
     if (map != NULL)
     {
-        // הפונקציה הזו כבר עוברת על כל האובייקטים במפה (סלעים, דשא, רצפה)
-        // ומחזירה את הנקודה הכי גבוהה מתחת לרגליים של השחקן
-        float groundHeight = GetMapHeightAt(map, asset, player->position);
+        float targetHeight = GetMapHeightAt(map, asset, player->position);
 
-        // עדכון הגובה של השחקן
-        player->position.y = groundHeight;
+        // שימוש ב-Lerp כדי להחליק את המעבר בין גבהים
+        // ה-15.0f הוא "מהירות ההצמדה". ככל שהמספר גבוה יותר, הוא ייצמד מהר יותר
+        player->position.y = Lerp(player->position.y, targetHeight, deltaTime * 15.0f);
     }
     else
     {
-        // אם אין מפה (MAP_NONE), אולי נקבע גובה ברירת מחדל כדי שלא ייפול לאינסוף
-        player->position.y = 220.0f;
+        player->position.y = Lerp(player->position.y, 220.0f, deltaTime * 15.0f);
     }
 }
 

@@ -155,6 +155,7 @@ void DrawMap(GameMap *map, AssetManager *assets)
         return;
 
     rlDisableBackfaceCulling();
+    rlEnableDepthTest();
 
     for (int i = 0; i < map->objectCount; i++)
     {
@@ -183,7 +184,7 @@ float GetMapHeightAt(GameMap *map, AssetManager *assets, Vector3 position)
     // יוצרים קרן שמתחילה מעל הראש של השחקן (למשל 10 יחידות למעלה) ויורה למטה
 
     Ray ray = {
-        (Vector3){position.x, position.y + 10.0f, position.z},
+        (Vector3){position.x, position.y + 50.0f, position.z},
         (Vector3){0, -1, 0}};
     /*
 

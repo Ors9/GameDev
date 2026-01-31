@@ -14,22 +14,20 @@ GameCamera *InitGameCamera()
 {
     GameCamera *gCam = malloc(sizeof(GameCamera));
     if (gCam == NULL)
-    {
-        printf("Failed to allocate memory for GameCamera.\n");
         exit(1);
-    }
 
-    // --- אתחול חובה של נתוני Raylib ---
+    // הגדרות בסיסיות של Raylib
     gCam->raylibCam.fovy = 45.0f;
     gCam->raylibCam.up = (Vector3){0.0f, 1.0f, 0.0f};
     gCam->raylibCam.projection = CAMERA_PERSPECTIVE;
-    gCam->raylibCam.position = (Vector3){0, 10, 20}; // מיקום התחלתי זמני
-    gCam->raylibCam.target = (Vector3){0, 0, 0};
 
-    // --- אתחול הגדרות המעקב ---
-    gCam->offsetDistance = 20.0f; // מרחק מהשחקן
-    gCam->height = 10.0f;         // גובה מעל השחקן
-    gCam->smoothness = 5.0f;      // ככל שהמספר גבוה יותר, המעקב מהיר יותר
+    // אתחול מיקום ראשוני קרוב לאזור שהשחקן מתחיל (100, 225, 100)
+    gCam->raylibCam.position = (Vector3){100.0f, 235.0f, 120.0f};
+    gCam->raylibCam.target = (Vector3){100.0f, 225.0f, 100.0f};
+
+    gCam->offsetDistance = 25.0f; // קצת יותר מרחק כדי לראות את הסביבה
+    gCam->height = 12.0f;
+    gCam->smoothness = 10.0f; // מהירות הרדיפה של המצלמה
 
     return gCam;
 }

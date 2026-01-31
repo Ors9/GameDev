@@ -2,11 +2,23 @@
 
 void PopulateTutorialMap(GameMap *map)
 {
-    // מיקום קבוע: X=15 (קצת לפני השחקן), Y=220 (גובה הרצפה), Z=0 (מרכז המסלול)
-    Vector3 pos = {15.0f, 220.0f, 0.0f};
+    float tileScale = 20.0f;
+    float spacing = 20.0f;
+    int length = 100;
+    int width = 3;
 
-    // גודל קבוע: 5.0 נחשב לגודל טוב לסלע שרואים בבירור
-    float scale = 5.0f;
+    // 1. יצירת הרצפה
+    for (int i = 0; i < length; i++)
+    {
+        for (int j = -1; j <= 1; j++)
+        {
+            Vector3 pos = {i * spacing, 220.0f, j * spacing};
+            AddObjectToMap(map, ENIV_FLOOR_BLOCK, pos, tileScale);
+        }
+    }
 
-    AddObjectToMap(map, ENIV_WORD_TERRIAN, pos, scale);
+    // 2. הוספת אובייקט מעל הרצפה
+    // שים לב לשינוי: Y = 220.1f (כדי למנוע Z-Fighting)
+    Vector3 obstaclePos = {100.0f, 220.1f, 0.0f};
+    AddObjectToMap(map, ENIV_FLOOR_BLOCK, obstaclePos, 5.0f);
 }
