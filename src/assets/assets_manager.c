@@ -1,6 +1,6 @@
 #include <raylib.h>
 #include "characters.h"
-#include "assets_manager.h"
+#include "assets/assets_manager.h"
 #include <stdlib.h>
 #include "stdio.h"
 

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include <assets_manager.h>
+#include "assets/assets_manager.h"
 #include <game_state.h>
 #include "raymath.h"
 

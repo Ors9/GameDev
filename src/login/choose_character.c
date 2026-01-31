@@ -2,7 +2,7 @@
 #include "game_state.h"
 #include <characters.h>
 #include <string.h>
-#include <assets_manager.h>
+#include "assets/assets_manager.h"
 #include <ctype.h>
 #include <user_session.h>
 #include <character_session.h>

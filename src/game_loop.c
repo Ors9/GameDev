@@ -5,7 +5,7 @@
 #include "game_state.h" // שינוי למירכאות
 #include "auth/auth_ui_manager.h"
 #include "auth/db_auth_manager.h"
-#include <assets_manager.h>
+#include "assets/assets_manager.h"
 
 static void UnloadGamePointers(GameCamera *gCam, GameState *gameState, AssetManager *assets)
 {

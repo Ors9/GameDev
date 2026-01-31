@@ -4,7 +4,7 @@
 #include "auth/auth_ui_manager.h"
 #include "auth/db_auth_manager.h"
 #include "login/choose_character.h"
-#include <assets_manager.h>
+#include "assets/assets_manager.h"
 #include <camera_manager.h>
 #include <user_session.h>
 #include "character_session.h"
