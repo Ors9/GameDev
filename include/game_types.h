@@ -1,7 +1,15 @@
 #ifndef GAME_TYPES_H
 #define GAME_TYPES_H
 
-typedef enum {
+typedef enum GameMapID {
+    MAP_NONE = 0,
+    MAP_TUTORIAL,
+    MAP_FOREST,
+    MAP_COUNT
+} GameMapID;
+
+
+typedef enum EnivormentResourcesTypes{
     ENIV_WORD_TERRIAN, // הרצפה העגולה הישנה (אם תרצה להשאיר)
     ENIV_FLOOR_BLOCK,  // המרצפת המרובעת (הבסיס לדרגוניקה)
     ENIV_ROCK_A,       // סלע סוג 1

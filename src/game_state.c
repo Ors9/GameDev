@@ -9,6 +9,7 @@
 #include <user_session.h>
 #include "character_session.h"
 #include "rlgl.h"
+#include "word/map_manager.h"
 
 static void HandleStateGameplay(GameState *gs);
 static void HandleStateLogin(GameState *gs);
@@ -24,6 +25,7 @@ struct GameState
     SubStateExit exit_sub_state;
     GameCamera *mainCamera;
     PGconn *dataBase;
+    GameMap * currMap;
 };
 
 GameState *InitGameState(AssetManager *asset, GameCamera *mainCamera)
@@ -43,7 +45,7 @@ GameState *InitGameState(AssetManager *asset, GameCamera *mainCamera)
     gs->gameplay_sub_state = SUB_GAMEPLAY_NONE;
     gs->exit_sub_state = SUB_EXIT_NONE;
     gs->dataBase = ConnectToDatabase();
-
+    gs->currMap = MAP_NONE;
     gs->session = InitUserSession("", -1, false);
 
     return gs;
@@ -173,6 +175,14 @@ void DrawWorldAxes(float length)
     // ציר Z - כחול
     DrawLine3D((Vector3){0, 0, 0}, (Vector3){0, 0, length}, BLUE);
     DrawCylinderEx((Vector3){0, 0, length}, (Vector3){0, 0, length + 2.0f}, 0.5f, 0.0f, 10, BLUE);
+}
+
+GameMap * GetMap(GameState * gs){
+    return gs->currMap;
+}
+
+void SetNewMap(GameState * gs , GameMap * map){
+    gs->currMap = map;
 }
 
 void DrawFloor(AssetManager *asset)

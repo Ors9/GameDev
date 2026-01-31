@@ -9,7 +9,9 @@
 
 typedef struct GameState GameState;
 typedef struct AssetManager AssetManager; // Struct of asset_manager.h
-
+typedef struct UserSession UserSession; // Struct of user_session.c
+typedef struct GameMap GameMap;   // הצהרה מוקדמת: אומרים שיש מבנה כזה
+typedef enum GameMapID GameMapID; // הצהרה מוקדמת ל-Enum
 
 
 // הגדרת מצבי המשחק השונים
@@ -49,7 +51,6 @@ typedef enum SubStateExit
 } SubStateExit;
 
 
-typedef struct UserSession UserSession; // Struct of user_session.c
 
 
 GameState *InitGameState(AssetManager *asset, GameCamera * mainCamera);
@@ -69,8 +70,8 @@ AssetManager * getAssetManager(GameState *gs);
 MainGameScreenState GetMainGameState(GameState *gs);
 UserSession *GetUserSession(GameState * gs);
 float GetTerrainHeight(Model terrain, Vector3 playerPos, Vector3 terrainOffset, float terrainScale);
+void SetNewMap(GameState * gs , GameMap * map);
+GameMap * GetMap(GameState * gs);
 
 
-
-
-#endif // GAME_STATE_H
+#endif// GAME_STATE_H
