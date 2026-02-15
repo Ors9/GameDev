@@ -54,7 +54,7 @@ void AddObjectToMap(GameMap *map, EnivormentResourcesTypes type, Vector3 pos, fl
 
 GameMap *InitGameMap(GameMapID mapId)
 {
-    GameMap *map = malloc(sizeof(GameMap));
+    GameMap *map = new GameMap();
 
     if (map == NULL)
     {

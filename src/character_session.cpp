@@ -119,7 +119,7 @@ void PrintCharacterSession(CharacterSession *session)
 
 CharacterSession *InitCharacterSession(int cid, char *cname, CharacterClass class_type, int level, int xp)
 {
-    CharacterSession *session = malloc(sizeof(CharacterSession));
+    CharacterSession *session = new CharacterSession;
     if (session == NULL)
     {
         printf("Failed to allocate memory for CharacterSession.\n");
@@ -153,7 +153,7 @@ void UpdateCharacterSession(CharacterSession *session, char *cname, int cid, Cha
 CharacterSession *CreateEmptyCharacterList(int size)
 {
 
-    CharacterSession *chars = malloc(sizeof(CharacterSession) * size);
+    CharacterSession *chars = new CharacterSession;
     if (chars == NULL)
     {
         perror("Failed to allocate CharacterSession list");
@@ -163,7 +163,7 @@ CharacterSession *CreateEmptyCharacterList(int size)
     for (int i = 0; i < size; i++)
     {
         chars[i].cid = -1;
-        chars[i].class_type = -1;
+        chars[i].class_type = (CharacterClass)-1;
         chars[i].level = 0;
         chars[i].xp = 0;
         chars[i].cname[0] = '\0';

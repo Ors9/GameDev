@@ -12,7 +12,7 @@ struct GameCamera
 
 GameCamera *InitGameCamera()
 {
-    GameCamera *gCam = malloc(sizeof(GameCamera));
+    GameCamera *gCam = new GameCamera;
     if (gCam == NULL)
         exit(1);
 

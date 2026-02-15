@@ -57,7 +57,7 @@ void PrintUserSessionDebug(UserSession *session) {
 // אתחול הסשן - עכשיו מאתחלים גם את הרשימה כריקה
 UserSession *InitUserSession(const char *name, int uid, bool isConnected)
 {
-    UserSession *session = malloc(sizeof(UserSession));
+    UserSession *session = new UserSession;
     if (session == NULL)
     {
         printf("Failed to allocate memory for UserSession.\n");

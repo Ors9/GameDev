@@ -33,7 +33,7 @@ struct AssetManager
 AssetManager *InitAssetManager()
 {
 
-    AssetManager *assets = malloc(sizeof(AssetManager));
+    AssetManager *assets = new AssetManager;
     if (assets == NULL)
     {
         printf("Failed to allocate memory for AssetManager.\n");
@@ -171,13 +171,13 @@ static void InitCharacterResources(AssetManager *assets)
 {
     for (int i = 0; i < CLASS_COUNT; i++)
     {
-        const char *modelPath = GetFullAnimPath(i, PLAYER_IDLE);
+        const char *modelPath = GetFullAnimPath((CharacterClass)i, PLAYER_IDLE);
         assets->classResources[i].model = LoadModel(modelPath);
 
         for (int j = 0; j < ANIM_COUNT; j++)
         {
 
-            const char *animPath = GetFullAnimPath(i, j);
+            const char *animPath = GetFullAnimPath((CharacterClass)i, (PlayerAnimationState )j);
 
             if (animPath != NULL)
             {

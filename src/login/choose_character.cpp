@@ -95,7 +95,7 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
     // 5. ציור כפתורים דינמי לבחירת דמות
     for (int i = 0; i < characterCount; i++)
     {
-        Rectangle btnRec = {100 + (i * 200), screenHeight - 220, 150, 40};
+        Rectangle btnRec = {(float)(100 + (i * 200)), (float)(screenHeight - 220), 150.0f, 40.0f};
         CharacterSession *cur = GetCharacterFromList(list, i);
 
         if (GuiButton(btnRec, GetCharacterName(cur)))
@@ -112,7 +112,7 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
     // --- כאן החזרנו את הלוגיקה והכפתורים שנעלמו ---
 
     // 6. כפתור START GAME - עם לוגיקת הניקוי
-    if (GuiButton((Rectangle){(screenWidth / 2.0f) - 200, screenHeight - 140, 400, 60}, "START GAME"))
+    if (GuiButton((Rectangle){(float)((screenWidth / 2.0f) - 200), (float)(screenHeight - 140), 400.0f, 60.0f}, "START GAME"))
     {
         // מבצעים את הבחירה הסופית (העתקת הדמות וניקוי הרשימה)
         FinalizeCharacterSelection(session, selectedCharacter, getAssetManager(gs));
@@ -130,7 +130,7 @@ void ChoosePlayerScreen(int screenWidth, int screenHeight, GameState *gs)
     }
 
     // 7. כפתור CREATE NEW CHARACTER (בתחתית המסך)
-    if (GuiButton((Rectangle){(screenWidth / 2.0f) - 200, screenHeight - 70, 400, 60}, "+ Create New Character"))
+    if (GuiButton((Rectangle){(screenWidth / 2.0f) - 200, (float)(screenHeight - 70), 400.0f, 60.0f}, "+ Create New Character"))
     {
         dataLoaded = false; // כדי שיטען מחדש כשנחזור
         UpdateLoginState(gs, SUB_LOGIN_CREATE_CHARACTER);
@@ -164,15 +164,15 @@ void CreateCharacterScreen(int screenWidth, int screenHeight, GameState *gs)
         selectedClass = MUTANT_CHAR;
     }
 
-    if (GuiButton((Rectangle){screenWidth - 300, screenHeight / 2.0f, 200, 50}, "MONSTER"))
+    if (GuiButton((Rectangle){(float)(screenWidth - 300), screenHeight / 2.0f, 200.0f, 50.0f}, "MONSTER"))
     {
         selectedClass = MONSTER_CHAR;
     }
 
-    Vector2 inputPos = {(screenWidth / 2.0f) - 150, screenHeight - 250};
+    Vector2 inputPos = {(float)(screenWidth / 2.0f) - 150.0f, (float)screenHeight - 250.0f};
     DrawLblInput(inputPos, 300, 50, "Character Name:", charName, 20, &nameEditMode);
 
-    if (GuiButton((Rectangle){(screenWidth / 2.0f) - 250, screenHeight - 150, 500, 60}, "Create Chosen Character"))
+    if (GuiButton((Rectangle){(float)(screenWidth / 2.0f) - 250.0f, (float)screenHeight - 150.0f, 500.0f, 60.0f}, "Create Chosen Character"))
     {
         if (IsValidName(charName, errorText) == true)
         {
@@ -185,7 +185,7 @@ void CreateCharacterScreen(int screenWidth, int screenHeight, GameState *gs)
         }
     }
 
-    if (GuiButton((Rectangle){(screenWidth / 2.0f) - 250, screenHeight - 70, 500, 60}, "Back"))
+    if (GuiButton((Rectangle){((float)screenWidth / 2.0f) - 250.0f, (float)screenHeight - 70.0f, 500.0f, 60.0f}, "Back"))
     {
         UpdateLoginState(gs, SUB_LOGIN_CHOOSE_CHARACTER);
     }
@@ -194,7 +194,7 @@ void CreateCharacterScreen(int screenWidth, int screenHeight, GameState *gs)
     if (errorText[0] != '\0')
     {
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, ColorToInt(RED)); // צבע אדום לשגיאה
-        GuiLabel((Rectangle){(screenWidth / 2.0f) - 250, screenHeight - 20, 500, 30}, errorText);
+        GuiLabel((Rectangle){((float)screenWidth / 2.0f) - 250.0f, (float)screenHeight - 20.0f, 500.0f, 30.0f}, errorText);
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, ColorToInt(GRAY)); // החזרה לצבע רגיל
     }
 }

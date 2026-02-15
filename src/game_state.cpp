@@ -31,7 +31,7 @@ struct GameState
 GameState *InitGameState(AssetManager *asset, GameCamera *mainCamera)
 {
 
-    GameState *gs = malloc(sizeof(GameState));
+    GameState *gs = new GameState;
     if (gs == NULL)
     {
         printf("Failed to allocate memory for GameState.\n");

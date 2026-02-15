@@ -21,7 +21,7 @@ struct Enemy
 Enemy *InitEnemy()
 {
     // הקצאת זיכרון דינמית
-    Enemy *enemy = malloc(sizeof(Enemy));
+    Enemy *enemy = new Enemy ;
     if (enemy == NULL)
     {
         printf("Failed to allocate memory for Enemy.\n");

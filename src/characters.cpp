@@ -44,7 +44,7 @@ int GetMaxHealth(Player *p)
 
 Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
 {
-    Player *player = malloc(sizeof(Player));
+    Player *player = new Player;
     if (player == NULL)
     {
         printf("Failed to allocate memory for Player.\n");
@@ -59,7 +59,7 @@ Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
     player->animIndex = 0;
     player->animTime = 0;
 
-    player->stats = malloc(sizeof(CharacterStats));
+    player->stats = new CharacterStats;
     if (player->stats == NULL)
     {
         printf("Failed to allocate memory for CharacterStats.\n");
