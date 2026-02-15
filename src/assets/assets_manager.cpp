@@ -177,7 +177,7 @@ static void InitCharacterResources(AssetManager *assets)
         for (int j = 0; j < ANIM_COUNT; j++)
         {
 
-            const char *animPath = GetFullAnimPath((CharacterClass)i, (PlayerAnimationState )j);
+            const char *animPath = GetFullAnimPath((CharacterClass)i, (PlayerAnimationState)j);
 
             if (animPath != nullptr)
             {
@@ -209,35 +209,36 @@ void UnloadAssetsManager(AssetManager *assets)
     if (assets == nullptr)
         return;
 
+    // 1. שחרור דמויות
     for (int i = 0; i < CLASS_COUNT; i++)
     {
-        // 1. שחרור המודל מהכרטיס הגרפי
-        UnloadModel(assets->classResources[i].model);
-
-        // 2. שחרור כל מערכי האנימציות שנטענו
-        for (int j = 0; j < ANIM_COUNT; j++)
+        if (assets->classResources[i].isLoaded)
         {
-            if (assets->classResources[i].animations[j] != nullptr)
+            UnloadModel(assets->classResources[i].model);
+
+            for (int j = 0; j < ANIM_COUNT; j++)
             {
-                // Raylib דורשת את המצביע ואת הכמות ששמרנו
-                UnloadModelAnimations(assets->classResources[i].animations[j], assets->classResources[i].animCounts[j]);
-                assets->classResources[i].animations[j] = nullptr;
+                if (assets->classResources[i].animations[j] != nullptr)
+                {
+                    // שחרור האנימציות
+                    UnloadModelAnimations(assets->classResources[i].animations[j], assets->classResources[i].animCounts[j]);
+                    assets->classResources[i].animations[j] = nullptr;
+                }
             }
         }
-        assets->classResources[i].isLoaded = false;
     }
 
+    // 2. שחרור סביבה (רק מה שבאמת נטען)
     for (int i = 0; i < ENIVORMENT_COUNT; i++)
     {
         if (assets->worldRes[i].isLoaded)
         {
-            // שחרור המודל (כולל ה-Meshes וה-Materials שלו)
             UnloadModel(assets->worldRes[i].model);
-
-            assets->worldRes[i].isLoaded = false;
         }
     }
+
+    // 3. מחיקת האובייקט עצמו
     delete assets;
-    assets = nullptr;
-    printf("Assets memory cleared successfully.\n");
+    // עדיף להדפיס פעם אחת בסוף ולא בכל שלב
+    printf("All assets cleared from GPU and RAM.\n");
 }
