@@ -3,17 +3,20 @@
 #include "assets/assets_manager.h"
 #include <stdlib.h>
 #include "stdio.h"
+#include "raymath.h"
 
 static const char *GetFullAnimPath(CharacterClass cls, PlayerAnimationState state);
 static const char *GetFullEnivPath(EnivormentResourcesTypes state);
 static void InitCharacterResources(AssetManager *assets);
 static void InitEnvironmentResources(AssetManager *assets);
+static void NormalizeModelScale(CharacterResources *res);
 
 struct CharacterResources
 {
     Model model;                            // המודל האמיתי ב-VRAM
     ModelAnimation *animations[ANIM_COUNT]; // האנימציות האמיתיות
     int animCounts[ANIM_COUNT];             // כמות האנימציות
+    Matrix baseTransform;
     bool isLoaded;
 };
 
@@ -29,6 +32,11 @@ struct AssetManager
     EnvironmentResources worldRes[ENIVORMENT_COUNT]; // המשאבים של הסביבה
     CharacterResources classResources[CLASS_COUNT];  // שחקנים
 };
+
+Model GetCharacterModel(CharacterResources *res)
+{
+    return res->model;
+}
 
 AssetManager *InitAssetManager()
 {
@@ -71,6 +79,40 @@ static void InitEnvironmentResources(AssetManager *assets)
             }
         }
     }
+}
+static void NormalizeModelScale(CharacterResources *res)
+{
+    BoundingBox bb = GetModelBoundingBox(res->model);
+    float originalHeight = bb.max.y - bb.min.y;
+    if (originalHeight <= 0)
+        return;
+
+    float scaleFactor = 1.0f / originalHeight;
+    float offsetY = -bb.min.y;
+
+    // סדר פעולות נכון ב-Raylib:
+    // 1. קודם מזיזים את הרגליים ל-0 (Translate)
+    // 2. אז מגדילים פי 100 (Scale)
+    Matrix translation = MatrixTranslate(0, offsetY, 0);
+    Matrix scaling = MatrixScale(scaleFactor, scaleFactor, scaleFactor);
+
+    // ב-Raylib: Scale(Translate(...))
+    res->baseTransform = MatrixMultiply(scaling, translation);
+    res->model.transform = res->baseTransform;
+    printf("[ASSETS] Warrok Normalized: Original height %.2f, Scale Factor %.4f\n", originalHeight, scaleFactor);
+}
+
+bool IsCharacterLoaded(CharacterResources *res)
+{
+    return (res != nullptr && res->isLoaded);
+}
+
+// מחזיר את כמות האנימציות שיש למצב ספציפי
+int GetAnimCount(CharacterResources *res, PlayerAnimationState state)
+{
+    if (res == nullptr)
+        return 0;
+    return res->animCounts[state];
 }
 
 Model GetEnvModelByType(AssetManager *assets, EnivormentResourcesTypes type)
@@ -121,6 +163,19 @@ EnvironmentResources *GetEnivormentResources(AssetManager *asset)
     return asset->worldRes;
 }
 
+static const char *GetFullMeshPath(CharacterClass cls)
+{
+    switch (cls)
+    {
+    case MUTANT_CHAR:
+        return "assets/model/Player/Mutant/Mutant.glb";
+    case MONSTER_CHAR:
+        return "assets/model/Player/Warrok/Warrok.glb";
+    default:
+        return nullptr;
+    }
+}
+
 static const char *GetFullAnimPath(CharacterClass cls, PlayerAnimationState state)
 {
     char *basePath;
@@ -158,45 +213,90 @@ static const char *GetFullAnimPath(CharacterClass cls, PlayerAnimationState stat
         }
         break;
     case MONSTER_CHAR:
-        basePath = "assets/model/Player/Monster/";
-        return TextFormat("%s%s", basePath, "character.glb");
+        basePath = "assets/model/Player/Warrok/";
+        switch (state)
+        {
+        case PLAYER_IDLE:
+
+            return TextFormat("%s%s", basePath, "Idle.glb");
+        case PLAYER_WALK:
+            return TextFormat("%s%s", basePath, "Walk.glb");
+        case PLAYER_RUN:
+            return TextFormat("%s%s", basePath, "Run.glb");
+        case PLAYER_PUNCH:
+            return TextFormat("%s%s", basePath, "Punch.glb");
+        case PLAYER_SWIPE:
+            return TextFormat("%s%s", basePath, "Swipe.glb");
+        case PLAYER_JUMP:
+
+            return TextFormat("%s%s", basePath, "Jumping.glb");
+        case PLAYER_JUMP_ATTACK:
+            return TextFormat("%s%s", basePath, "JumpAttack.glb");
+        case PLAYER_ROAR:
+            return TextFormat("%s%s", basePath, "Roar.glb");
+        case PLAYER_FLEX:
+            // ופה השם היה ארוך מאוד
+            return TextFormat("%s%s", basePath, "FlexMuscles.glb");
+        case PLAYER_DIE:
+            return TextFormat("%s%s", basePath, "Dying.glb");
+        default:
+            return nullptr;
+        }
     default:
         return nullptr;
     }
 
     return nullptr;
 }
-
 static void InitCharacterResources(AssetManager *assets)
 {
     for (int i = 0; i < CLASS_COUNT; i++)
     {
-        const char *modelPath = GetFullAnimPath((CharacterClass)i, PLAYER_IDLE);
-        assets->classResources[i].model = LoadModel(modelPath);
+        // 1. טעינת המודל (הגוף/Mesh) מהקובץ הייעודי
+        const char *meshPath = GetFullMeshPath((CharacterClass)i);
+        assets->classResources[i].model = LoadModel(meshPath);
 
+        // בדיקת תקינות - האם המודל מכיל גוף?
+        if (assets->classResources[i].model.meshCount > 0)
+        {
+            assets->classResources[i].isLoaded = true;
+            NormalizeModelScale(&assets->classResources[i]);
+            printf("[ASSETS] Successfully loaded Mesh for class %d\n", i);
+        }
+        else
+        {
+            assets->classResources[i].isLoaded = false;
+            printf("[ASSETS] WARNING: No Mesh found for class %d at %s\n", i, meshPath);
+        }
+
+        // 2. לולאת טעינת האנימציות (הקבצים הקלים בלי ה-Skin)
         for (int j = 0; j < ANIM_COUNT; j++)
         {
-
             const char *animPath = GetFullAnimPath((CharacterClass)i, (PlayerAnimationState)j);
-
             if (animPath != nullptr)
             {
-                int animsInFile = 0;
+                // Raylib מלביש את האנימציה על המודל שטענו למעלה לפי שמות העצמות
                 assets->classResources[i].animations[j] = LoadModelAnimations(animPath, &assets->classResources[i].animCounts[j]);
             }
         }
-        assets->classResources[i].isLoaded = true;
     }
 }
 
 void UpdateModelRotate(CharacterResources *resources, float rotation)
 {
-    resources->model.transform = MatrixRotateY(rotation * DEG2RAD);
+    Matrix rotationMat = MatrixRotateY(rotation * DEG2RAD);
+    
+    // סדר קריטי: Rotation * BaseTransform
+    // זה מבטיח שהיא קודם תהיה בגודל 1.0 וב-0, ואז תסתובב סביב הציר שלה
+    resources->model.transform = MatrixMultiply(rotationMat, resources->baseTransform);
 }
-
 Model GetModel(CharacterResources *res)
 {
     return res->model;
+}
+Model *GetModelPtr(CharacterResources *res)
+{
+    return &res->model;
 }
 
 ModelAnimation *GetAnimationForState(CharacterResources *resources, PlayerAnimationState state)

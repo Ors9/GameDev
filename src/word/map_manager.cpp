@@ -20,7 +20,7 @@ struct GameMap
 {
     GameMapID mapId;
     std::vector<MapObject> objects; // רשימת כל העצים והסלעים במפה
-    int objectCount;
+
     float mapLength; // כמה ארוך השלב (ציר X)
     float laneWidth; // רוחב המסלול (ציר Z)
 };
@@ -52,7 +52,7 @@ GameMap *InitGameMap(GameMapID mapId)
     }
 
     map->mapId = mapId;
-    map->objectCount = 0;
+
     map->mapLength = 2000.0f;
     map->laneWidth = 40.0f;
 
@@ -73,11 +73,13 @@ GameMap *InitGameMap(GameMapID mapId)
 // מחזיר את מערך האובייקטים של המפה
 MapObject *GetMapObjects(GameMap *map)
 {
+    if (map == NULL || map->objects.empty())
+        return NULL;
     return map->objects.data();
 }
 
 // מחזיר את כמות האובייקטים שיש לצייר
-int GetMapObjectCount(GameMap *map)
+int GetMap(GameMap *map)
 {
     return (int)map->objects.size();
 }
@@ -135,15 +137,14 @@ void DrawMap(GameMap *map, AssetManager *assets)
     rlDisableBackfaceCulling();
     rlEnableDepthTest();
 
-    for (int i = 0; i < map->objectCount; i++)
+    // שימוש ב-size() במקום ב-
+    for (size_t i = 0; i < map->objects.size(); i++)
     {
         MapObject *obj = &map->objects[i];
 
         if (IsEnvResourceReady(assets, obj->modelType))
         {
             Model model = GetEnvModelByType(assets, obj->modelType);
-
-            // ציור המופע הספציפי מהמפה
             DrawModel(model, obj->position, obj->scale, WHITE);
         }
     }
@@ -177,7 +178,7 @@ float GetMapHeightAt(GameMap *map, AssetManager *assets, Vector3 position)
     */
 
     // עוברים על כל האובייקטים במפה
-    for (int i = 0; i < map->objectCount; i++)
+    for (int i = 0; i < map->objects.size(); i++)
     {
         MapObject *obj = &map->objects[i];
 
@@ -231,7 +232,6 @@ void UnloadMapAndLoadNext(GameState *gs, GameMapID nextLevelID)
         printf("Error: Failed to load map %d\n", nextLevelID);
     }
 }
-
 void PrintMapInfo(GameMap *map)
 {
     if (map == nullptr)
@@ -242,20 +242,21 @@ void PrintMapInfo(GameMap *map)
 
     printf("\n--- [MAP DEBUG INFO] ---\n");
     printf("Map ID: %d\n", map->mapId);
-    printf("Total Objects: %d\n", map->objectCount);
+    printf("Total Objects: %d\n", (int)map->objects.size());
     printf("Map Dimensions: Length %.2f, Lane Width %.2f\n", map->mapLength, map->laneWidth);
 
-    if ( map->objectCount > 0)
+    // --- התיקון כאן: הסרנו את ה-if שהדפיס אזהרה כש-size > 0 ---
+    if (map->objects.empty()) 
     {
-        printf("WARNING: Object count is %d but objects pointer is nullptr!\n", map->objectCount);
+        printf("Map is empty (no objects to list).\n");
         return;
     }
 
     printf("Objects List:\n");
-    for (int i = 0; i < map->objectCount; i++)
+    for (size_t i = 0; i < map->objects.size(); i++)
     {
         MapObject obj = map->objects[i];
-        printf("  [%d] Type: %d | Pos: (%.1f, %.1f, %.1f) | Scale: %.1f\n",
+        printf("  [%zu] Type: %d | Pos: (%.1f, %.1f, %.1f) | Scale: %.1f\n",
                i,
                obj.modelType,
                obj.position.x, obj.position.y, obj.position.z,

@@ -6,6 +6,7 @@
 #include <game_state.h>
 #include "raymath.h"
 #include "word/map_manager.h"
+#include <rlgl.h>
 
 static bool CheckMovementInput();
 static PlayerAnimationState DeterminePlayerAnimationState(Player *player);
@@ -59,12 +60,11 @@ Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
     player->animIndex = 0;
     player->animTime = 0;
 
-
     player->stats.attack = 10;
     player->stats.health = 100;
     player->stats.defense = 5;
     player->currentHealth = 100;
-    player->position = (Vector3){100.0f, 225.0f, 100.0f}; // שמנו ב-Y=1 כדי שיעמוד על הרשת
+    player->position = (Vector3){100.0f, 225.0f, 0.0f}; // שמנו ב-Y=1 כדי שיעמוד על הרשת
     player->stats.speed = 0.0f;
     return player;
 }
@@ -166,30 +166,49 @@ Vector3 GetPlayerPosition(Player *player)
 
 static void UpdatePlayerAnimation(Player *player, float deltaTime)
 {
+    // 1. בדיקת הגנה ראשונית - האם המשאבים קיימים וטעונים?
+    if (!IsCharacterLoaded(player->assets))
+        return;
 
-    PlayerAnimationState currState = player->currentState;
+    // 2. שליפת המודל והאנימציה דרך ה-Getters
+    Model *m = GetModelPtr(player->assets);
+    ModelAnimation *currentAnim = GetAnimationForState(player->assets, player->currentState);
+    int count = GetAnimCount(player->assets, player->currentState);
 
+    if (m->boneCount != currentAnim[0].boneCount)
+    {
+        printf("CRITICAL ERROR: Bone count mismatch! Model: %d, Anim: %d\n", m->boneCount, currentAnim[0].boneCount);
+        return; // עוצרים כאן כדי שלא יקרוס
+    }
+
+    // 3. בדיקת בטיחות: האם יש אנימציה תקינה למצב הנוכחי?
+    if (currentAnim == nullptr || count == 0)
+    {
+        // אם אין אנימציה, נחזור ל-IDLE כדי שהשחקן לא "ייתקע"
+        if (player->currentState != PLAYER_IDLE)
+        {
+            player->currentState = PLAYER_IDLE;
+            player->animTime = 0;
+        }
+    }
+
+    // 4. חישוב זמן האנימציה
     float animSpeed = (player->currentState == PLAYER_IDLE) ? 30.0f : 60.0f;
     player->animTime += deltaTime * animSpeed;
 
-    ModelAnimation *currentAnim = GetAnimationForState(player->assets, player->currentState);
-
-    if (player->animTime >= currentAnim->frameCount)
+    // 5. לולאת האנימציה (Loop) או חזרה ל-IDLE (Action)
+    if (player->animTime >= currentAnim[0].frameCount)
     {
-
         player->animTime = 0;
-        if (IsActionAnimation(currState) == true)
+        if (IsActionAnimation(player->currentState))
         {
             player->currentState = PLAYER_IDLE;
         }
     }
 
-    if (player->classtype == MONSTER_CHAR)
-    {
-        return;
-    }
-
-    UpdateModelAnimation(GetModel(player->assets), currentAnim[0], (int)player->animTime);
+    // 6. הקריאה לעדכון - שימוש במודל שקיבלנו מה-Getter
+    // שים לב: 'm' הוא כבר המודל, אז לא צריך 'm.model'
+    UpdateModelAnimation(*m, currentAnim[0], (int)player->animTime);
 }
 
 void UpdatePlayer(Player *player, float deltaTime, GameState *gs)
@@ -324,26 +343,19 @@ static void DebugDrawChar(Player *player, float scale)
 
 void DrawPlayer(Player *player)
 {
-    float currentScale = 1.0f;
+    float currentScale = (player->classtype == MONSTER_CHAR) ? 30.0f : 6.0f;
+    Model *model = GetModelPtr(player->assets);
+
+    // ביטול זמני של הסתרת פנים אחוריים - כדי לראות אם המפלצת "הפוכה"
+    rlDisableBackfaceCulling();
+
+    DrawModel(*model, player->position, currentScale, WHITE);
+
+    rlEnableBackfaceCulling(); // מחזירים למצב רגיל
 
     if (player->classtype == MONSTER_CHAR)
-    {
-        currentScale = 3.0f;
-    }
-    else if (player->classtype == MUTANT_CHAR)
-    {
-        currentScale = 3.0f;
-    }
-
-    // ציור המודל האמיתי
-    DrawModel(GetModel(player->assets), player->position, currentScale, WHITE);
-
-    if (player->classtype != MUTANT_CHAR)
-    {
         DebugDrawChar(player, currentScale);
-    }
 }
-
 bool MovingPlayer(Player *player, float deltaTime)
 {
     if (player->currentState == PLAYER_JUMP_ATTACK)
@@ -405,8 +417,6 @@ void UnloadPlayer(Player *player)
 {
     if (player == nullptr)
         return; // הגנה: אל תנסה לשחרר מצביע ריק
-
-
 
     delete player;
     player = nullptr;
