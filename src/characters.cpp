@@ -343,7 +343,7 @@ static void DebugDrawChar(Player *player, float scale)
 
 void DrawPlayer(Player *player)
 {
-    float currentScale = (player->classtype == MONSTER_CHAR) ? 30.0f : 6.0f;
+    float currentScale = (player->classtype == MONSTER_CHAR) ? 0.001f : 6.0f;
     Model *model = GetModelPtr(player->assets);
 
     // ביטול זמני של הסתרת פנים אחוריים - כדי לראות אם המפלצת "הפוכה"
@@ -355,6 +355,9 @@ void DrawPlayer(Player *player)
 
     if (player->classtype == MONSTER_CHAR)
         DebugDrawChar(player, currentScale);
+
+
+        
 }
 bool MovingPlayer(Player *player, float deltaTime)
 {
