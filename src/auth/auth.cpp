@@ -19,7 +19,7 @@ bool HashedPassword(const char *password, char hashedPassword[])
 
 static bool IsComplexityValid(const char *input)
 {
-    if (input == NULL || input[0] == '\0')
+    if (input == nullptr || input[0] == '\0')
         return false;
 
     bool foundChar = false;
@@ -44,7 +44,7 @@ static bool IsComplexityValid(const char *input)
 
 static AUTH_STATUS RegisterNameRules(char *name)
 {
-    if (name == NULL || strlen(name) == 0)
+    if (name == nullptr || strlen(name) == 0)
         return NAME_EMPTY;
     if (strlen(name) < 4)
         return NAME_TOO_SHORT;
@@ -59,7 +59,7 @@ static AUTH_STATUS RegisterNameRules(char *name)
 
 static AUTH_STATUS CheckIfPasswordValid(char *pass, char *passCheck)
 {
-    if (pass == NULL || passCheck == NULL)
+    if (pass == nullptr || passCheck == nullptr)
         return PASS_EMPTY;
 
     size_t len = strlen(pass);

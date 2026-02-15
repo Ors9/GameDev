@@ -22,7 +22,7 @@ Enemy *InitEnemy()
 {
     // הקצאת זיכרון דינמית
     Enemy *enemy = new Enemy ;
-    if (enemy == NULL)
+    if (enemy == nullptr)
     {
         printf("Failed to allocate memory for Enemy.\n");
         exit(1);
@@ -42,7 +42,7 @@ Enemy *InitEnemy()
 }
 void UpdateEnemy(Enemy *enemy, Player *player, float deltaTime)
 {
-    if (enemy == NULL || player == NULL)
+    if (enemy == nullptr || player == nullptr)
         return;
 
     Vector3 playerPos = GetPlayerPosition(player);
@@ -67,10 +67,10 @@ void DrawEnemy(Enemy *enemy)
 
 void UnloadEnemy(Enemy *enemy)
 {
-    if (enemy != NULL)
+    if (enemy != nullptr)
     {
-        free(enemy);
-        enemy = NULL;
+        delete enemy;
+        enemy = nullptr;
         
     }
     printf("Enemy memory cleared successfully.\n");

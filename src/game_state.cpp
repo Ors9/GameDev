@@ -32,7 +32,7 @@ GameState *InitGameState(AssetManager *asset, GameCamera *mainCamera)
 {
 
     GameState *gs = new GameState;
-    if (gs == NULL)
+    if (gs == nullptr)
     {
         printf("Failed to allocate memory for GameState.\n");
         exit(1);
@@ -45,7 +45,7 @@ GameState *InitGameState(AssetManager *asset, GameCamera *mainCamera)
     gs->gameplay_sub_state = SUB_GAMEPLAY_NONE;
     gs->exit_sub_state = SUB_EXIT_NONE;
     gs->dataBase = ConnectToDatabase();
-    gs->currMap = NULL;
+    gs->currMap = nullptr;
     gs->session = InitUserSession("", -1, false);
 
     return gs;
@@ -246,36 +246,36 @@ SubStateLogin getLoginState(GameState *gs)
 GameState *UnloadGameState(GameState *gs)
 {
 
-    if (gs == NULL)
+    if (gs == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
 
-    if (gs->currMap != NULL)
+    if (gs->currMap != nullptr)
     {
         UnloadGameMap(gs->currMap);
-        gs->currMap = NULL;
+        gs->currMap = nullptr;
     }
 
     // 1. סגירת מסד הנתונים
-    if (gs->dataBase != NULL)
+    if (gs->dataBase != nullptr)
     {
         PQfinish(gs->dataBase);
-        gs->dataBase = NULL;
+        gs->dataBase = nullptr;
         puts("Database closed.");
     }
 
-    if (gs->session != NULL)
+    if (gs->session != nullptr)
     {
         UnloadUserSession(gs->session);
-        gs->session = NULL;
+        gs->session = nullptr;
     }
 
     // 4. שחרור המבנה עצמו
-    free(gs);
-    gs = NULL;
+    delete gs;
+    gs = nullptr;
 
     printf("GameState unloaded successfully.\n");
 
-    return NULL;
+    return nullptr;
 }

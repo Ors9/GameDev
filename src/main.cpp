@@ -1,17 +1,20 @@
+#include <iostream> 
+#include <cstdlib>  
 #include "raylib.h"
 #include "game_loop.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include "sodium.h"
-
 
 int main()
 {
-    if(sodium_init() == -1){
-        printf("Sodium init fail at main");
-        exit(1);
+
+    if (sodium_init() == -1)
+    {
+
+        std::cerr << "Fatal Error: libsodium initialization failed!" << std::endl;
+        return 1; // בתוך main, עדיף להחזיר 1 מאשר לקרוא ל-exit
     }
+
     StartGame();
-    
+
     return 0;
 }

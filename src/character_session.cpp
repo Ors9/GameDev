@@ -24,7 +24,7 @@ void DrawEntityLabel(GameState *gs)
     UserSession *session = GetUserSession(gs);
     CharacterSession *cs = GetCharacterSession(session);
 
-    if (cs == NULL || cs->player == NULL)
+    if (cs == nullptr || cs->player == nullptr)
     {
         return;
     }
@@ -93,9 +93,9 @@ Player *GetPlayer(CharacterSession *cs)
 
 void PrintCharacterSession(CharacterSession *session)
 {
-    if (session == NULL)
+    if (session == nullptr)
     {
-        printf("[CharacterSession] Error: Attempted to print a NULL session.\n");
+        printf("[CharacterSession] Error: Attempted to print a nullptr session.\n");
         return;
     }
 
@@ -106,7 +106,7 @@ void PrintCharacterSession(CharacterSession *session)
     printf("Level:   %d\n", session->level);
     printf("XP:      %d\n", session->xp);
 
-    if (session->player != NULL)
+    if (session->player != nullptr)
     {
         printf("Status:  Active (Player object initialized)\n");
     }
@@ -120,7 +120,7 @@ void PrintCharacterSession(CharacterSession *session)
 CharacterSession *InitCharacterSession(int cid, char *cname, CharacterClass class_type, int level, int xp)
 {
     CharacterSession *session = new CharacterSession;
-    if (session == NULL)
+    if (session == nullptr)
     {
         printf("Failed to allocate memory for CharacterSession.\n");
         exit(1);
@@ -131,7 +131,7 @@ CharacterSession *InitCharacterSession(int cid, char *cname, CharacterClass clas
     session->xp = xp;
     strncpy(session->cname, cname, sizeof(session->cname) - 1);
     session->cname[sizeof(session->cname) - 1] = '\0';
-    session->player = NULL;
+    session->player = nullptr;
     return session;
 }
 
@@ -154,10 +154,10 @@ CharacterSession *CreateEmptyCharacterList(int size)
 {
 
     CharacterSession *chars = new CharacterSession;
-    if (chars == NULL)
+    if (chars == nullptr)
     {
         perror("Failed to allocate CharacterSession list");
-        return NULL;
+        return nullptr;
     }
 
     for (int i = 0; i < size; i++)
@@ -167,7 +167,7 @@ CharacterSession *CreateEmptyCharacterList(int size)
         chars[i].level = 0;
         chars[i].xp = 0;
         chars[i].cname[0] = '\0';
-        chars[i].player = NULL;
+        chars[i].player = nullptr;
     }
     return chars;
 }
@@ -185,16 +185,16 @@ CharacterSession *GetCharacterFromList(CharacterSession *list, int index)
 
 void UnloadCharacterSession(CharacterSession *session)
 {
-    if (session != NULL)
+    if (session != nullptr)
     {
-        if (session->player != NULL)
+        if (session->player != nullptr)
         {
             UnloadPlayer(session->player);
-            session->player = NULL;
+            session->player = nullptr;
         }
 
         // 2. שחרור ה-Session עצמו
-        free(session);
+        delete session;
         printf("CharacterSession and associated Player memory cleared successfully.\n");
     }
 }
@@ -212,8 +212,8 @@ int GetCharacterLevel(CharacterSession *session)
 
 CharacterSession *CloneCharacterSession(CharacterSession *source)
 {
-    if (source == NULL)
-        return NULL;
+    if (source == nullptr)
+        return nullptr;
 
     // שימוש בפונקציית ה-Init המקורית שמאפסת הכל נכון
     CharacterSession *newNode = InitCharacterSession(
@@ -228,14 +228,14 @@ CharacterSession *CloneCharacterSession(CharacterSession *source)
 
 int GetCharacterId(CharacterSession *session)
 {
-    if (session == NULL)
+    if (session == nullptr)
         return -1;
     return session->cid; // וודא שזה השם של השדה אצלך ב-struct (כנראה cid לפי ה-SQL)
 }
 
 int GetCharacterXP(CharacterSession *session)
 {
-    if (session == NULL)
+    if (session == nullptr)
         return 0;
     return session->xp; // וודא שזה השם של השדה אצלך
 }

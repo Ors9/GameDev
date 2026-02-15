@@ -11,7 +11,7 @@ PGconn *ConnectToDatabase()
     const char *conninfo = "host=localhost port=5432 dbname=summoner_game user=postgres password=1234 connect_timeout=10";
     PGconn *conn = PQconnectdb(conninfo);
 
-    if (conn == NULL || PQstatus(conn) == CONNECTION_BAD)
+    if (conn == nullptr || PQstatus(conn) == CONNECTION_BAD)
     {
         fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
         PQfinish(conn);
@@ -31,7 +31,7 @@ bool ConnectToGame(const char *name, const char *pass, PGconn *dataBase, char *o
     params[0] = name;
 
     // 3. ביצוע השאילתה - שים לב לשינוי למספר 1 בפרמטרים
-    PGresult *res = PQexecParams(dataBase, sql, 1, NULL, params, NULL, NULL, 0);
+    PGresult *res = PQexecParams(dataBase, sql, 1, nullptr, params, nullptr, nullptr, 0);
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
@@ -83,7 +83,7 @@ bool AddUserToDatabase(const char *name, const char *pass, PGconn *dataBase, cha
     paramValues[0] = name;
     paramValues[1] = hashedPass;
 
-    PGresult *res = PQexecParams(dataBase, sql, 2, NULL, paramValues, NULL, NULL, 0);
+    PGresult *res = PQexecParams(dataBase, sql, 2, nullptr, paramValues, nullptr, nullptr, 0);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         strncpy(outErrorMsg, "Registration failed: Server error.", 127);
@@ -102,7 +102,7 @@ bool CheckIfUserExists(const char *name, PGconn *dataBase, char *outErrorMsg)
     const char *sql = "SELECT 1 FROM users WHERE username = $1";
     const char *paramValues[1] = {name};
 
-    PGresult *res = PQexecParams(dataBase, sql, 1, NULL, paramValues, NULL, NULL, 0);
+    PGresult *res = PQexecParams(dataBase, sql, 1, nullptr, paramValues, nullptr, nullptr, 0);
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {

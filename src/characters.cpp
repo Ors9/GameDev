@@ -25,7 +25,7 @@ typedef struct CharacterStats
 struct Player
 {
     CharacterResources *assets;
-    CharacterStats *stats;
+    CharacterStats stats;
     CharacterClass classtype;
     Vector3 position;
     int currentHealth;
@@ -39,13 +39,13 @@ struct Player
 
 int GetMaxHealth(Player *p)
 {
-    return p->stats->health;
+    return p->stats.health;
 }
 
 Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
 {
     Player *player = new Player;
-    if (player == NULL)
+    if (player == nullptr)
     {
         printf("Failed to allocate memory for Player.\n");
         exit(1);
@@ -59,18 +59,13 @@ Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
     player->animIndex = 0;
     player->animTime = 0;
 
-    player->stats = new CharacterStats;
-    if (player->stats == NULL)
-    {
-        printf("Failed to allocate memory for CharacterStats.\n");
-        exit(1);
-    }
-    player->stats->attack = 10;
-    player->stats->health = 100;
-    player->stats->defense = 5;
+
+    player->stats.attack = 10;
+    player->stats.health = 100;
+    player->stats.defense = 5;
     player->currentHealth = 100;
     player->position = (Vector3){100.0f, 225.0f, 100.0f}; // שמנו ב-Y=1 כדי שיעמוד על הרשת
-    player->stats->speed = 0.0f;
+    player->stats.speed = 0.0f;
     return player;
 }
 
@@ -81,7 +76,7 @@ int GetCurrentHealth(Player *p)
 
 CharacterStats *GetCharacterStats(Player *p)
 {
-    return p->stats;
+    return &p->stats;
 }
 
 static PlayerAnimationState DeterminePlayerAnimationState(Player *player)
@@ -237,7 +232,7 @@ static void UpdateY(GameState *gs, Player *player)
     GameMap *map = GetMap(gs);
     float deltaTime = GetFrameTime();
 
-    if (map != NULL)
+    if (map != nullptr)
     {
         float targetHeight = GetMapHeightAt(map, asset, player->position);
 
@@ -256,23 +251,23 @@ static void UpdatePlayerLogicBaseOnState(Player *player)
     switch (player->currentState)
     {
     case PLAYER_RUN:
-        player->stats->speed = 30.0f;
+        player->stats.speed = 30.0f;
         break;
     case PLAYER_WALK:
-        player->stats->speed = 20.0f;
+        player->stats.speed = 20.0f;
         break;
     // כל מצבי התקיפה מאפשרים תנועה קלה (Combat Strafe)
     case PLAYER_PUNCH:
     case PLAYER_SWIPE:
     case PLAYER_ROAR:
     case PLAYER_FLEX:
-        player->stats->speed = 8.0f;
+        player->stats.speed = 8.0f;
         break;
     // מצבים שבהם המוטנט חייב לעמוד במקום
     case PLAYER_IDLE:
     case PLAYER_DIE:
     case PLAYER_JUMP_ATTACK:
-        player->stats->speed = 0.0f;
+        player->stats.speed = 0.0f;
         break;
     case PLAYER_JUMP:
         // TODO לעבוד על זה!!!
@@ -382,7 +377,7 @@ bool MovingPlayer(Player *player, float deltaTime)
     {
         direction = Vector3Normalize(direction);
         CalculateRotation(player, direction);
-        float currentSpeed = player->stats->speed;
+        float currentSpeed = player->stats.speed;
         Vector3 moveVec = Vector3Scale(direction, currentSpeed * deltaTime);
         player->position = Vector3Add(player->position, moveVec);
 
@@ -408,16 +403,12 @@ bool AnimationController(Player *player)
 
 void UnloadPlayer(Player *player)
 {
-    if (player == NULL)
+    if (player == nullptr)
         return; // הגנה: אל תנסה לשחרר מצביע ריק
 
-    if (player->stats != NULL)
-    {
-        free(player->stats);
-        player->stats = NULL; // ניקוי המצביע לאחר השחרור
-    }
 
-    free(player);
-    player = NULL;
+
+    delete player;
+    player = nullptr;
     printf("Player memory cleared successfully.\n");
 }

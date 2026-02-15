@@ -24,4 +24,4 @@ all:
 	$(CXX) $(SRCS) -o $(TARGET) $(INCLUDES) $(LIBRARIES) $(CXXFLAGS)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) *.o src/*.o src/*/*.o src/*/*/*.o

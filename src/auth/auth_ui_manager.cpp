@@ -61,8 +61,8 @@ void EnterGameScreen(int screenWidth, int screenHeight, GameState *gameState)
     pos.y += btnH + 25;
 
     // שדות קלט
-    pos.y = DrawLabeledInput(pos, btnW, btnH, "Enter Name:", ui.name, 32, &ui.nameEdit, &ui.passEdit, NULL);
-    pos.y = DrawLabeledInput(pos, btnW, btnH, "Enter Password:", ui.pass, 32, &ui.passEdit, &ui.nameEdit, NULL);
+    pos.y = DrawLabeledInput(pos, btnW, btnH, "Enter Name:", ui.name, 32, &ui.nameEdit, &ui.passEdit, nullptr);
+    pos.y = DrawLabeledInput(pos, btnW, btnH, "Enter Password:", ui.pass, 32, &ui.passEdit, &ui.nameEdit, nullptr);
 
     if (ui.errorMsg[0] != '\0')
     {

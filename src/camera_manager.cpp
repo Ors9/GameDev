@@ -13,7 +13,7 @@ struct GameCamera
 GameCamera *InitGameCamera()
 {
     GameCamera *gCam = new GameCamera;
-    if (gCam == NULL)
+    if (gCam == nullptr)
         exit(1);
 
     // הגדרות בסיסיות של Raylib
@@ -58,10 +58,10 @@ void UpdateGameCamera(GameCamera *gCam, Player *player, float deltaTime)
 
 void UnloadGameCamera(GameCamera *gCam)
 {
-    if (gCam != NULL)
+    if (gCam != nullptr)
     {
-        free(gCam);
-        gCam = NULL;
+        delete gCam;
+        gCam = nullptr;
         printf("Camera memory cleared.\n");
     }
 }

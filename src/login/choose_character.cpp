@@ -36,7 +36,7 @@ static int LoadUserCharacters(GameState *gs)
     const char *query = "SELECT cid, user_id, class_type, cname, level, xp FROM UserCharacters WHERE user_id = $1";
     const char *params[1] = {userIdStr};
 
-    PGresult *res = PQexecParams(db, query, 1, NULL, params, NULL, NULL, 0);
+    PGresult *res = PQexecParams(db, query, 1, nullptr, params, nullptr, nullptr, 0);
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
@@ -203,7 +203,7 @@ static bool AddCharClassToDB(char *name, CharacterClass cls, GameState *gs, char
 {
 
     PGconn *dataBase = getDataBase(gs);
-    if (dataBase == NULL)
+    if (dataBase == nullptr)
     {
         strncpy(errorText, "Database connection lost.", 100);
         return false;
@@ -223,7 +223,7 @@ static bool AddCharClassToDB(char *name, CharacterClass cls, GameState *gs, char
     paramValues[1] = classStr;
     paramValues[2] = name;
 
-    PGresult *res = PQexecParams(dataBase, query, 3, NULL, paramValues, NULL, NULL, 0);
+    PGresult *res = PQexecParams(dataBase, query, 3, nullptr, paramValues, nullptr, nullptr, 0);
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
@@ -245,7 +245,7 @@ static bool AddCharClassToDB(char *name, CharacterClass cls, GameState *gs, char
 
 static bool IsValidName(const char *name, char *errorText)
 {
-    if (name == NULL)
+    if (name == nullptr)
     {
         strcpy(errorText, "Name must be between 4 and 10 characters.");
         return false;

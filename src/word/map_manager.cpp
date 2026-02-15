@@ -7,6 +7,7 @@
 #include "game_types.h"
 #include "word/maps/tuturial_map.h"
 #include "rlgl.h"
+#include <vector>
 
 struct MapObject
 {
@@ -18,7 +19,7 @@ struct MapObject
 struct GameMap
 {
     GameMapID mapId;
-    MapObject *objects; // רשימת כל העצים והסלעים במפה
+    std::vector<MapObject> objects; // רשימת כל העצים והסלעים במפה
     int objectCount;
     float mapLength; // כמה ארוך השלב (ציר X)
     float laneWidth; // רוחב המסלול (ציר Z)
@@ -35,33 +36,21 @@ MapObject InitMapObject(EnivormentResourcesTypes modelType, Vector3 position, fl
 
 void AddObjectToMap(GameMap *map, EnivormentResourcesTypes type, Vector3 pos, float scale)
 {
-    if (map == NULL)
+    if (map == nullptr)
         return;
-
-    // 1. הגדלת הזיכרון של המערך עבור אובייקט אחד נוסף
-    map->objectCount++;
-    map->objects = (MapObject *)realloc(map->objects, sizeof(MapObject) * map->objectCount);
-
-    if (map->objects == NULL)
-    {
-        printf("Error: Failed to reallocate memory for map objects!\n");
-        return;
-    }
-
-    // 2. השמת הנתונים באובייקט החדש (האחרון במערך)
-    map->objects[map->objectCount - 1] = InitMapObject(type, pos, scale);
+    map->objects.push_back(InitMapObject(type, pos, scale));
 }
 
 GameMap *InitGameMap(GameMapID mapId)
 {
     GameMap *map = new GameMap();
 
-    if (map == NULL)
+    if (map == nullptr)
     {
         printf("InitGameMap malloc fail\n");
         exit(1);
     }
-    map->objects = NULL;
+
     map->mapId = mapId;
     map->objectCount = 0;
     map->mapLength = 2000.0f;
@@ -84,23 +73,19 @@ GameMap *InitGameMap(GameMapID mapId)
 // מחזיר את מערך האובייקטים של המפה
 MapObject *GetMapObjects(GameMap *map)
 {
-    if (map == NULL)
-        return NULL;
-    return map->objects;
+    return map->objects.data();
 }
 
 // מחזיר את כמות האובייקטים שיש לצייר
 int GetMapObjectCount(GameMap *map)
 {
-    if (map == NULL)
-        return 0;
-    return map->objectCount;
+    return (int)map->objects.size();
 }
 
 // מחזיר את אורך השלב
 float GetMapLength(GameMap *map)
 {
-    if (map == NULL)
+    if (map == nullptr)
         return 0.0f;
     return map->mapLength;
 }
@@ -108,7 +93,7 @@ float GetMapLength(GameMap *map)
 // מחזיר את רוחב המסלול (Lane)
 float GetMapLaneWidth(GameMap *map)
 {
-    if (map == NULL)
+    if (map == nullptr)
         return 0.0f;
     return map->laneWidth;
 }
@@ -133,25 +118,18 @@ float GetMapObjectScale(MapObject *obj)
 
 void UnloadGameMap(GameMap *map)
 {
-    if (map == NULL)
+    if (map == nullptr)
         return;
 
-    // 1. שחרור מערך האובייקטים (ה-MapObjects)
-    if (map->objects != NULL)
-    {
-        free(map->objects);
-        map->objects = NULL; // לביטחון, כדי שלא ננסה לגשת אליו שוב
-    }
-
     // 2. שחרור מבנה המפה עצמו
-    free(map);
+    delete map;
 
     printf("Map memory cleared successfully.\n");
 }
 
 void DrawMap(GameMap *map, AssetManager *assets)
 {
-    if (map == NULL || assets == NULL)
+    if (map == nullptr || assets == nullptr)
         return;
 
     rlDisableBackfaceCulling();
@@ -175,7 +153,7 @@ void DrawMap(GameMap *map, AssetManager *assets)
 
 float GetMapHeightAt(GameMap *map, AssetManager *assets, Vector3 position)
 {
-    if (map == NULL || assets == NULL)
+    if (map == nullptr || assets == nullptr)
         return 220.0f; // גובה רצפה בסיסי כברירת מחדל
 
     float highestHitY = 220.0f; // מתחילים מגובה הרצפה
@@ -234,16 +212,16 @@ void UnloadMapAndLoadNext(GameState *gs, GameMapID nextLevelID)
 {
     // שחרור המפה הישנה
     GameMap *gsMap = GetMap(gs);
-    if (gsMap != NULL)
+    if (gsMap != nullptr)
     {
         UnloadGameMap(gsMap);
-        SetNewMap(gs, NULL); // איפוס זמני לביטחון
+        SetNewMap(gs, nullptr); // איפוס זמני לביטחון
     }
 
     // טעינת המפה החדשה
     GameMap *nextMap = InitGameMap(nextLevelID);
 
-    if (nextMap != NULL)
+    if (nextMap != nullptr)
     {
         SetNewMap(gs, nextMap);
     }
@@ -256,9 +234,9 @@ void UnloadMapAndLoadNext(GameState *gs, GameMapID nextLevelID)
 
 void PrintMapInfo(GameMap *map)
 {
-    if (map == NULL)
+    if (map == nullptr)
     {
-        printf("[MAP DEBUG] Map is NULL!\n");
+        printf("[MAP DEBUG] Map is nullptr!\n");
         return;
     }
 
@@ -267,9 +245,9 @@ void PrintMapInfo(GameMap *map)
     printf("Total Objects: %d\n", map->objectCount);
     printf("Map Dimensions: Length %.2f, Lane Width %.2f\n", map->mapLength, map->laneWidth);
 
-    if (map->objects == NULL && map->objectCount > 0)
+    if ( map->objectCount > 0)
     {
-        printf("WARNING: Object count is %d but objects pointer is NULL!\n", map->objectCount);
+        printf("WARNING: Object count is %d but objects pointer is nullptr!\n", map->objectCount);
         return;
     }
 

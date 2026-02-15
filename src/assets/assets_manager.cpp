@@ -34,7 +34,7 @@ AssetManager *InitAssetManager()
 {
 
     AssetManager *assets = new AssetManager;
-    if (assets == NULL)
+    if (assets == nullptr)
     {
         printf("Failed to allocate memory for AssetManager.\n");
         exit(1);
@@ -53,7 +53,7 @@ static void InitEnvironmentResources(AssetManager *assets)
         // 1. קבלת הנתיב לפי ה-ID של המשאב
         const char *modelPath = GetFullEnivPath((EnivormentResourcesTypes)i);
 
-        if (modelPath != NULL)
+        if (modelPath != nullptr)
         {
             // 2. טעינה ישירות לתוך המבנה של ה-AssetManager
             assets->worldRes[i].model = LoadModel(modelPath);
@@ -75,21 +75,21 @@ static void InitEnvironmentResources(AssetManager *assets)
 
 Model GetEnvModelByType(AssetManager *assets, EnivormentResourcesTypes type)
 {
-    if (assets == NULL || !assets->worldRes[type].isLoaded)
+    if (assets == nullptr || !assets->worldRes[type].isLoaded)
         return (Model){0};
     return assets->worldRes[type].model;
 }
 
 BoundingBox GetEnvBoundsByType(AssetManager *assets, EnivormentResourcesTypes type)
 {
-    if (assets == NULL)
+    if (assets == nullptr)
         return (BoundingBox){0};
     return assets->worldRes[type].bounds;
 }
 
 bool IsEnvResourceReady(AssetManager *assets, EnivormentResourcesTypes type)
 {
-    return (assets != NULL && assets->worldRes[type].isLoaded);
+    return (assets != nullptr && assets->worldRes[type].isLoaded);
 }
 
 static const char *GetFullEnivPath(EnivormentResourcesTypes type)
@@ -107,7 +107,7 @@ static const char *GetFullEnivPath(EnivormentResourcesTypes type)
     case ENIV_TREE_PINE:
         return TextFormat("%s%s", basePath, "tree_pine.glb");
     default:
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -154,17 +154,17 @@ static const char *GetFullAnimPath(CharacterClass cls, PlayerAnimationState stat
         case PLAYER_DIE:
             return TextFormat("%s%s", basePath, "Death.glb");
         default:
-            return NULL;
+            return nullptr;
         }
         break;
     case MONSTER_CHAR:
         basePath = "assets/model/Player/Monster/";
         return TextFormat("%s%s", basePath, "character.glb");
     default:
-        return NULL;
+        return nullptr;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 static void InitCharacterResources(AssetManager *assets)
@@ -179,7 +179,7 @@ static void InitCharacterResources(AssetManager *assets)
 
             const char *animPath = GetFullAnimPath((CharacterClass)i, (PlayerAnimationState )j);
 
-            if (animPath != NULL)
+            if (animPath != nullptr)
             {
                 int animsInFile = 0;
                 assets->classResources[i].animations[j] = LoadModelAnimations(animPath, &assets->classResources[i].animCounts[j]);
@@ -206,7 +206,7 @@ ModelAnimation *GetAnimationForState(CharacterResources *resources, PlayerAnimat
 
 void UnloadAssetsManager(AssetManager *assets)
 {
-    if (assets == NULL)
+    if (assets == nullptr)
         return;
 
     for (int i = 0; i < CLASS_COUNT; i++)
@@ -217,11 +217,11 @@ void UnloadAssetsManager(AssetManager *assets)
         // 2. שחרור כל מערכי האנימציות שנטענו
         for (int j = 0; j < ANIM_COUNT; j++)
         {
-            if (assets->classResources[i].animations[j] != NULL)
+            if (assets->classResources[i].animations[j] != nullptr)
             {
                 // Raylib דורשת את המצביע ואת הכמות ששמרנו
                 UnloadModelAnimations(assets->classResources[i].animations[j], assets->classResources[i].animCounts[j]);
-                assets->classResources[i].animations[j] = NULL;
+                assets->classResources[i].animations[j] = nullptr;
             }
         }
         assets->classResources[i].isLoaded = false;
@@ -237,7 +237,7 @@ void UnloadAssetsManager(AssetManager *assets)
             assets->worldRes[i].isLoaded = false;
         }
     }
-    free(assets);
-    assets = NULL;
+    delete assets;
+    assets = nullptr;
     printf("Assets memory cleared successfully.\n");
 }
