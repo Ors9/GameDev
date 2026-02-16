@@ -301,8 +301,8 @@ static void DrawLoginCharacters(GameState *gs, int selectedCharacter, int charac
     {
         CharacterSession *current = GetCharacterFromList(list, i);
         Vector3 pos = {5.0f + (i * 10.0f), 0.0f, 0.0f};
-        float currentScale = (GetCharacterClass(current) == MONSTER_CHAR) ? 6.0f : 6.0f;
-
+        float currentScale = (GetCharacterClass(current) == MONSTER_CHAR) ? 3.0f : 3.0f;
+       
         DrawModel(GetModel(GetCharacterRescource(assets, GetCharacterClass(current))), pos, currentScale, WHITE);
 
         // ציור סימון בחירה מתחת לדמות

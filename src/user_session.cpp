@@ -36,7 +36,7 @@ void PrintUserSessionDebug(UserSession *session) {
     
     // בדיקת רשימת הדמויות
     if (session->characterList == nullptr) {
-        printf("Char List:      EMPTY (nullptr)\n");
+        printf("Char List:      EMPTY (nullptr)(good after login)\n");
     } else {
         printf("Char List:      LOADED (Count: %d, Address: %p)\n", 
                session->characterCount, (void*)session->characterList);

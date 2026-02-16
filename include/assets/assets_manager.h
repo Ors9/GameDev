@@ -14,7 +14,6 @@ typedef struct EnvironmentResources EnvironmentResources;
 typedef struct AssetManager AssetManager;
 
 
-void UpdateModelRotate( CharacterResources *resources, float rotation);
 EnvironmentResources * GetEnivormentResources(AssetManager * asset);
 void UnloadAssetsManager(AssetManager *assets);
 ModelAnimation * GetAnimationForState( CharacterResources *resources, PlayerAnimationState state);

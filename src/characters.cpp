@@ -52,6 +52,18 @@ Player *InitPlayer(CharacterClass selectedClass, AssetManager *asset)
         exit(1);
     }
 
+    //DEBUG
+    CharacterResources *res = GetCharacterRescource(asset, selectedClass);
+    if (res != nullptr) {
+        printf("--- Resource Check ---\n");
+        printf("Class: %d\n", selectedClass);
+        printf("Memory Address: %p\n", (void*)res);
+
+        printf("----------------------\n");
+    }
+    //DONE DEBUG
+
+
     player->assets = GetCharacterRescource(asset, selectedClass);
 
     player->classtype = selectedClass;
@@ -166,49 +178,65 @@ Vector3 GetPlayerPosition(Player *player)
 
 static void UpdatePlayerAnimation(Player *player, float deltaTime)
 {
-    // 1. בדיקת הגנה ראשונית - האם המשאבים קיימים וטעונים?
+    printf("DEBUG 1: Checking assets\n");
+    fflush(stdout);
     if (!IsCharacterLoaded(player->assets))
         return;
 
-    // 2. שליפת המודל והאנימציה דרך ה-Getters
+    printf("DEBUG 2: Getting Model Pointer\n");
+    fflush(stdout);
     Model *m = GetModelPtr(player->assets);
+    if (!m)
+    {
+        printf("CRITICAL: Model is NULL!\n");
+        fflush(stdout);
+        return;
+    }
+
+    printf("DEBUG 3: Getting Animation for State %d\n", player->currentState);
+    fflush(stdout);
     ModelAnimation *currentAnim = GetAnimationForState(player->assets, player->currentState);
     int count = GetAnimCount(player->assets, player->currentState);
 
+    // --- כאן כנראה הקריסה (הסדר השתנה כדי להגן על הגישה לזיכרון) ---
+    printf("DEBUG 4: Validating Animation Pointer\n");
+    fflush(stdout);
+    if (currentAnim == NULL || count == 0)
+    {
+        printf("WARNING: No animation found for state %d\n", player->currentState);
+        fflush(stdout);
+        player->currentState = PLAYER_IDLE;
+        return;
+    }
+
+    printf("DEBUG 5: Checking Bone Count (Model: %d, Anim: %d)\n", m->boneCount, currentAnim[0].boneCount);
+    fflush(stdout);
     if (m->boneCount != currentAnim[0].boneCount)
     {
-        printf("CRITICAL ERROR: Bone count mismatch! Model: %d, Anim: %d\n", m->boneCount, currentAnim[0].boneCount);
-        return; // עוצרים כאן כדי שלא יקרוס
+        printf("CRITICAL ERROR: Bone count mismatch!\n");
+        fflush(stdout);
+        return;
     }
 
-    // 3. בדיקת בטיחות: האם יש אנימציה תקינה למצב הנוכחי?
-    if (currentAnim == nullptr || count == 0)
-    {
-        // אם אין אנימציה, נחזור ל-IDLE כדי שהשחקן לא "ייתקע"
-        if (player->currentState != PLAYER_IDLE)
-        {
-            player->currentState = PLAYER_IDLE;
-            player->animTime = 0;
-        }
-    }
-
-    // 4. חישוב זמן האנימציה
+    printf("DEBUG 6: Calculating Time\n");
+    fflush(stdout);
     float animSpeed = (player->currentState == PLAYER_IDLE) ? 30.0f : 60.0f;
     player->animTime += deltaTime * animSpeed;
 
-    // 5. לולאת האנימציה (Loop) או חזרה ל-IDLE (Action)
     if (player->animTime >= currentAnim[0].frameCount)
     {
         player->animTime = 0;
         if (IsActionAnimation(player->currentState))
-        {
             player->currentState = PLAYER_IDLE;
-        }
     }
 
-    // 6. הקריאה לעדכון - שימוש במודל שקיבלנו מה-Getter
-    // שים לב: 'm' הוא כבר המודל, אז לא צריך 'm.model'
+    printf("DEBUG 7: Calling UpdateModelAnimation (Frame: %d)\n", (int)player->animTime);
+    fflush(stdout);
+
     UpdateModelAnimation(*m, currentAnim[0], (int)player->animTime);
+
+    printf("DEBUG 8: Done Update\n");
+    fflush(stdout);
 }
 
 void UpdatePlayer(Player *player, float deltaTime, GameState *gs)
@@ -303,7 +331,6 @@ static void CalculateRotation(Player *player, Vector3 direction)
 
     player->rotation = atan2f(direction.x, direction.z) * RAD2DEG;
 
-    UpdateModelRotate(player->assets, player->rotation);
 }
 
 static void DebugDrawChar(Player *player, float scale)
@@ -343,21 +370,36 @@ static void DebugDrawChar(Player *player, float scale)
 
 void DrawPlayer(Player *player)
 {
-    float currentScale = (player->classtype == MONSTER_CHAR) ? 0.001f : 6.0f;
+    if (!IsCharacterLoaded(player->assets))
+        return;
+
     Model *model = GetModelPtr(player->assets);
 
-    // ביטול זמני של הסתרת פנים אחוריים - כדי לראות אם המפלצת "הפוכה"
+    // 1. איפוס הטרנספורם הפנימי כדי שלא יתערב לנו (מצוין שעשית את זה)
+    model->transform = MatrixIdentity();
+
+    // 2. הגדרת הפרמטרים לציור
+    Vector3 position = player->position;
+    Vector3 rotationAxis = {0.0f, 1.0f, 0.0f}; // סיבוב סביב ציר Y
+    float rotationAngle = player->rotation;    // הזווית שנמצאת בתוך ה-Player (במעלות)
+
+    // 3. הגדרת ה-Scale (וקטור במקום float בודד)
+    float s = (player->classtype == MONSTER_CHAR) ? 3.0f : 3.0f;
+    Vector3 scale = {s, s, s};
+
+    // 4. הציור האמיתי
     rlDisableBackfaceCulling();
 
-    DrawModel(*model, player->position, currentScale, WHITE);
+    // DrawModelEx מקבלת: מודל, מיקום, ציר סיבוב, זווית, סקייל, וצבע
+    DrawModelEx(*model, position, rotationAxis, rotationAngle, scale, WHITE);
 
-    rlEnableBackfaceCulling(); // מחזירים למצב רגיל
+    rlEnableBackfaceCulling();
 
+    // Debug - כדור עזר
     if (player->classtype == MONSTER_CHAR)
-        DebugDrawChar(player, currentScale);
-
-
-        
+    {
+        DrawSphereWires(position, 1.0f, 10, 10, GREEN);
+    }
 }
 bool MovingPlayer(Player *player, float deltaTime)
 {
